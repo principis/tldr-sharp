@@ -10,18 +10,30 @@ A C# based command-line client for [tldr](https://github.com/tldr-pages/tldr).
 On ubuntu install mono-complete
 
 ## Installing
+### Linux
+Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
+```bash
+wget <linux_install.sh url>
+chmod +x linux_install.sh
+./linux_install.sh
+```
+
+#### Manual
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```bash
 mkdir tldr
-tar xzf v1.0.0.tar.gz -C tldr
+tar xzf v1.1.0.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
-chmod +x tldr
+sudo chmod +x tldr
 ```
 
+### Windows
+Sometime in the future....
+
 ## Usage
-```bash
+```
 Usage: tldr command [options]
 
 Simplified and community-driven man pages
