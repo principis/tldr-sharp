@@ -13,7 +13,7 @@ fi
 # Download release
 
 mkdir tldr
-wget https://github.com/principis/tldr-sharp/releases/download/VERSION_PLACEHOLDER/VERSION_PLACEHOLDER.tar.gz >/dev/null 2>/dev/null
+wget https://github.com/principis/tldr-sharp/releases/download/VERSION_PLACEHOLDER/VERSION_PLACEHOLDER.tar.gz >/dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -23,8 +23,8 @@ fi
 
 # Extract release
 
-tar xzf v1.1.0.tar.gz -C tldr
-rm v1.1.0.tar.gz
+tar xzf VERSION_PLACEHOLDER.tar.gz -C tldr
+rm VERSION_PLACEHOLDER.tar.gz
 if [ -d "$tldrLib/tldr" ]; then
     sudo rm -rf "$tldrLib/tldr"
 fi
@@ -41,7 +41,7 @@ fi
 
 # Download executable
 
-wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr >/dev/null 2>/dev/null
+wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr >/dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
