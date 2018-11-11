@@ -12,7 +12,7 @@ On ubuntu install mono-complete
 ## Installing
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```bash
-mkdir tldr_sharp
+mkdir tldr
 tar xzf v1.0.0.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
@@ -27,7 +27,10 @@ Usage: tldr command [options]
 Simplified and community-driven man pages
 
   -h, --help                 Display this help text.
+  -l, --list                 Show all pages for the current platform
+  -a, --list-all             Show all pages
   -u, --update               Update the local cache.
+  -c, --clear-cache          Clear the local cache.
 ```
 
 ## License
