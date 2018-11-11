@@ -13,8 +13,8 @@ On ubuntu install mono-complete
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```bash
 mkdir tldr_sharp
-tar xzf v1.0.0.tar.gz -C tldr_sharp
-sudo mv tldr_sharp /usr/local/bin
+tar xzf v1.0.0.tar.gz -C tldr
+sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
 chmod +x tldr

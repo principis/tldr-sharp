@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using Mono.Data.Sqlite;
 using Mono.Options;
 using System.IO;
+using System.Linq;
 using System.Net;
+using NaturalSort.Extension;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 
@@ -11,26 +14,42 @@ namespace tldr_sharp
 {
     internal class Program
     {
+        private static readonly string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
+        private static readonly string DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache", "index.sqlite");
+
+        
         public static void Main(string[] args)
         {
-            var showHelp = false;
-            var update = false;
+            bool showHelp = false;
+            bool update = false;
 
-            var options = new OptionSet
+            OptionSet options = new OptionSet
             {
                 {
                     "h|help", "Display this help text.",
                     v => showHelp = v != null
                 },
                 {
+                    "l|list", "Show all pages for the current platform",
+                    v => ListAll(false)
+                },
+                {
+                    "a|list-all", "Show all pages",
+                    v => ListAll(true)
+                },
+                {
                     "u|update", "Update the local cache.",
                     v => update = true
+                },
+                {
+                    "c|clear-cache", "Clear the local cache.",
+                    v => ClearCache()
                 }
             };
             
             var extra = options.Parse(args);
             
-            if (showHelp || extra.Count == 0)
+            if (showHelp || args.Length == 0)
             {
                 ShowHelp(options);
                 return;
@@ -41,8 +60,8 @@ namespace tldr_sharp
                 return;
             }
 
-            var page = "";
-            foreach (var arg in extra)
+            string page = "";
+            foreach (string arg in extra)
             {
                 if (arg.StartsWith("-"))
                 {
@@ -74,15 +93,9 @@ namespace tldr_sharp
         private static void GetPage(string page)
         {
             page = page.TrimStart();
+            CheckDb();
             
-            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr-sharp", "cache", "index.sqlite");
-            if (!File.Exists(dbPath))
-            {
-                Console.Write("Database not found. ");
-                Update();
-            }
-            
-            SqliteConnection conn = new SqliteConnection("Data Source=" + dbPath + ";");
+            SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
             SqliteCommand command = new SqliteCommand("SELECT path FROM pages WHERE name = @name AND lang = @lang AND (os = @os OR os = 'common')", conn);
             command.Parameters.Add(new SqliteParameter("@name", page));
@@ -107,9 +120,9 @@ namespace tldr_sharp
             reader.Read();
             string path = reader.GetString(0);
 
-            foreach (var line in File.ReadLines(path))
+            foreach (string line in File.ReadLines(path))
             {
-                var curLine = line;
+                string curLine = line;
                 if (line.Length == 0)
                 {
                     continue;
@@ -121,25 +134,58 @@ namespace tldr_sharp
                 }
                 switch (curLine[0])
                 {
-                       case '#':
-                           Console.WriteLine("\x1B[4m\x1b[1m"+ curLine.Substring(2) + "\x1b[0m\n");
-                           break;
-                       case '>':
-                           Console.WriteLine("\x1b[1m" + curLine.Substring(2) + "\x1b[0m");
-                           break;
-                       case '-':
-                           Console.WriteLine("\x1b[39m\n" + curLine);
-                           break;
-                       case '`':
-                           Console.WriteLine("  \x1b[31m" + curLine.Trim('`'));
-                           break;
-                       default:
-                           Console.WriteLine(curLine);
-                           break;
-                           
+                    case '#':
+                       Console.WriteLine("\x1B[4m\x1b[1m"+ curLine.Substring(2) + "\x1b[0m\n");
+                       break;
+                    case '>':
+                       Console.WriteLine("\x1b[1m" + curLine.Substring(2) + "\x1b[0m");
+                       break;
+                    case '-':
+                       Console.WriteLine("\x1b[39m\n" + curLine);
+                       break;
+                    case '`':
+                       Console.WriteLine("  \x1b[31m" + curLine.Trim('`'));
+                       break;
+                    default:
+                       Console.WriteLine(curLine);
+                       break;
                 }
             }
+        }
+
+        private static void CheckDb()
+        {
+            if (File.Exists(DbPath)) return;
+            Console.Write("Database not found. ");
+            Update();
+        }
+
+        private static void ListAll(bool ignorePlatform)
+        {
+            CheckDb();
+            SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
+            conn.Open();
+            SqliteCommand command = conn.CreateCommand();
+            if (ignorePlatform)
+            {
+                command.CommandText = "SELECT name FROM pages WHERE lang = @lang";
+            }
+            else
+            {
+                command.CommandText = "SELECT name FROM pages WHERE lang = @lang AND (os = @os OR os = 'common')";
+                command.Parameters.Add(new SqliteParameter("@os", GetOs()));
+            }
             
+            command.Parameters.Add(new SqliteParameter("@lang", "en"));
+            
+            var reader = command.ExecuteReader();
+            var results = new List<string>();
+            while (reader.Read())
+            {
+                results.Add(reader.GetString(0));
+            }
+
+            Console.WriteLine(string.Join(", ", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort())));
         }
         
 
@@ -153,13 +199,10 @@ namespace tldr_sharp
 
         private static void Update()
         {
-            
-            var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr-sharp", "cache");
-           
             Console.WriteLine("Updating cache...");
             
-            Directory.CreateDirectory(cachePath);
-            var cacheDir = new DirectoryInfo(cachePath);
+            Directory.CreateDirectory(CachePath);
+            var cacheDir = new DirectoryInfo(CachePath);
             
             foreach (var file in cacheDir.EnumerateFiles())
             {
@@ -170,8 +213,8 @@ namespace tldr_sharp
                 dir.Delete(true); 
             }
 
-            var tmpPath = Path.Combine(Path.GetTempPath(), "tldr");
-            var zipPath = Path.Combine(tmpPath, "tldr.zip");
+            string tmpPath = Path.Combine(Path.GetTempPath(), "tldr");
+            string zipPath = Path.Combine(tmpPath, "tldr.zip");
             
             Directory.CreateDirectory(tmpPath);
             
@@ -188,7 +231,7 @@ namespace tldr_sharp
                 {
                     if (!reader.Entry.IsDirectory)
                     {
-                        reader.WriteEntryToDirectory(cachePath, new ExtractionOptions
+                        reader.WriteEntryToDirectory(CachePath, new ExtractionOptions
                         {
                             ExtractFullPath = true,
                             Overwrite = true
@@ -201,23 +244,19 @@ namespace tldr_sharp
             UpdateIndex();
         }
 
-
         private static void UpdateIndex()
         {
             Console.WriteLine("Updating index...");
-
-            var cachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr-sharp", "cache");
-            var cacheDir = new DirectoryInfo(cachePath);
-            var dbPath = Path.Combine(cachePath, "index.sqlite");
+            DirectoryInfo cacheDir = new DirectoryInfo(CachePath);
            
-            SqliteConnection.CreateFile(dbPath);
+            SqliteConnection.CreateFile(DbPath);
             
-            var conn = new SqliteConnection("Data Source=" + dbPath + ";");
+            SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
-            var command = new SqliteCommand("CREATE TABLE pages (name VARCHAR(100), path TEXT, os VARCHAR(10), lang VARCHAR(2))", conn);
+            SqliteCommand command = new SqliteCommand("CREATE TABLE pages (name VARCHAR(100), path TEXT, os VARCHAR(10), lang VARCHAR(2))", conn);
             command.ExecuteNonQuery();
             command.Dispose();
-            var transaction = conn.BeginTransaction();
+            SqliteTransaction transaction = conn.BeginTransaction();
             command = conn.CreateCommand();
             command.Transaction = transaction;
             command.CommandType = CommandType.Text;
@@ -225,11 +264,11 @@ namespace tldr_sharp
             
             foreach (var dir in cacheDir.EnumerateDirectories("*pages*"))
             {
-                var lang = "en";
+                string lang = "en";
                 if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
                 foreach (var osDir in dir.EnumerateDirectories())
                 {
-                    var os = osDir.Name;
+                    string os = osDir.Name;
                     foreach (var file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
                     {
                         command.Parameters.AddWithValue("@name", Path.GetFileNameWithoutExtension(file.Name));
@@ -244,7 +283,26 @@ namespace tldr_sharp
             transaction.Commit();
             command.Dispose();
             conn.Close();
-            Console.WriteLine("Finished.");
+            Console.WriteLine("Cache updated.");
+        }
+
+        private static void ClearCache()
+        {
+            Console.WriteLine("Clearing cache...");
+            if (Directory.Exists(CachePath))
+            {
+                var cacheDir = new DirectoryInfo(CachePath);
+                foreach (var file in cacheDir.EnumerateFiles())
+                {
+                    file.Delete();
+                }
+
+                foreach (var dir in cacheDir.EnumerateDirectories())
+                {
+                    dir.Delete(true);
+                }
+            }
+            Console.WriteLine("Cache cleared.");
         }
     }
 }
