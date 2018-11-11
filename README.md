@@ -1,4 +1,7 @@
 # tldr-sharp
+
+[![Build Status](https://travis-ci.org/principis/tldr-sharp.svg?branch=master)](https://travis-ci.org/principis/tldr-sharp)
+
 A C# based command-line client for [tldr](https://github.com/tldr-pages/tldr).
 
 ![tldr screenshot](screenshot.png)
@@ -22,7 +25,7 @@ chmod +x linux_install.sh
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```bash
 mkdir tldr
-tar xzf v1.1.0.tar.gz -C tldr
+tar xzf v1.1.1.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr

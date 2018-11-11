@@ -18,7 +18,7 @@ namespace tldr_sharp
         private static readonly string DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache", "index.sqlite");
 
         
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             bool showHelp = false;
             bool update = false;
@@ -52,12 +52,12 @@ namespace tldr_sharp
             if (showHelp || args.Length == 0)
             {
                 ShowHelp(options);
-                return;
+                return 0;
             }
             if (update)
             {
                 Update();
-                return;
+                return 0;
             }
 
             string page = "";
@@ -66,11 +66,11 @@ namespace tldr_sharp
                 if (arg.StartsWith("-"))
                 {
                     if (page.Equals("")) Console.WriteLine("error: unknown option '{0}'", arg);
-                    break;
+                    return 1;
                 }
                 page += $" {arg}";
             }
-            if (page.Trim().Length > 0) GetPage(page);
+            return page.Trim().Length > 0 ? GetPage(page) : 0;
         }
 
         private static string GetOs()
@@ -90,7 +90,7 @@ namespace tldr_sharp
             }
         }
 
-        private static void GetPage(string page)
+        private static int GetPage(string page)
         {
             page = page.TrimStart();
             CheckDb();
@@ -113,7 +113,7 @@ namespace tldr_sharp
                 if (!reader.HasRows)
                 {
                     Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
-                    return;
+                    return 2;
                 }
             }
 
@@ -151,6 +151,7 @@ namespace tldr_sharp
                        break;
                 }
             }
+            return 0;
         }
 
         private static void CheckDb()

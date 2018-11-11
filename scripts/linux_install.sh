@@ -13,7 +13,7 @@ fi
 # Download release
 
 mkdir tldr
-wget https://github.com/principis/tldr-sharp/releases/download/v1.1.0/v1.1.0.tar.gz >/dev/null 2>/dev/null
+wget https://github.com/principis/tldr-sharp/releases/download/VERSION_PLACEHOLDER/VERSION_PLACEHOLDER.tar.gz >/dev/null 2>/dev/null
 retval=$?
 
 if [ $retval != 0 ]; then
