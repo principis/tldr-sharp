@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using Mono.Data.Sqlite;
 using Mono.Options;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using NaturalSort.Extension;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -14,49 +16,96 @@ namespace tldr_sharp
 {
     internal class Program
     {
-        private static readonly string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
-        private static readonly string DbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache", "index.sqlite");
-
+        private static readonly string CachePath =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
+        private static readonly string DbPath =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache",
+                "index.sqlite");
+        private static readonly string Language = Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName;
         
         public static int Main(string[] args)
         {
             bool showHelp = false;
             bool update = false;
+            
+            bool list = false;
+            bool ignorePlatform = false;
+            bool singleColumn = false;
 
+            string language = null;
+            string os = null;
+            
             OptionSet options = new OptionSet
             {
+                "Usage: tldr command [options]\n",
+                "Simplified and community-driven man pages\n",
                 {
                     "h|help", "Display this help text.",
-                    v => showHelp = v != null
+                    h => showHelp = h != null
                 },
                 {
                     "l|list", "Show all pages for the current platform",
-                    v => ListAll(false)
+                    l => list = l != null
                 },
                 {
                     "a|list-all", "Show all pages",
-                    v => ListAll(true)
+                    a => list = ignorePlatform = a != null
+                },
+                {
+                    "1", "Show all pages in single column",
+                    a => singleColumn = a != null, true
                 },
                 {
                     "u|update", "Update the local cache.",
-                    v => update = true
+                    u => update = true
                 },
                 {
                     "c|clear-cache", "Clear the local cache.",
-                    v => ClearCache()
+                    c => ClearCache()
+                },
+                {
+                    "os=", "Override the default OS",
+                    o => os = o
+                },
+                {
+                    "list-os", "List all OS's",
+                    o => Console.WriteLine(string.Join("\n", ListOs()))
+                },
+                {
+                    "lang=", "Override the default language",
+                    la => language = la
+                },
+                {
+                    "list-languages", "List all languages",
+                    la => Console.WriteLine(string.Join("\n",
+                        ListLanguages().Select(x => x + ": " + CultureInfo.GetCultureInfo(x).EnglishName)))
                 }
             };
-            
-            var extra = options.Parse(args);
+
+            List<string> extra;
+            try
+            {
+                extra = options.Parse(args);
+            }
+            catch (OptionException e)
+            {
+                Console.WriteLine(e.Message);
+                return 1;
+            }
             
             if (showHelp || args.Length == 0)
             {
-                ShowHelp(options);
+                options.WriteOptionDescriptions(Console.Out);
                 return 0;
             }
             if (update)
             {
                 Update();
+                return 0;
+            }
+            if (list)
+            {
+                ListAll(ignorePlatform, singleColumn);
                 return 0;
             }
 
@@ -70,7 +119,7 @@ namespace tldr_sharp
                 }
                 page += $" {arg}";
             }
-            return page.Trim().Length > 0 ? GetPage(page) : 0;
+            return page.Trim().Length > 0 ? GetPage(page, language, os) : 0;
         }
 
         private static string GetOs()
@@ -90,17 +139,41 @@ namespace tldr_sharp
             }
         }
 
-        private static int GetPage(string page)
+        private static IEnumerable<string> ListOs()
+        {
+            CheckDb();
+            SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
+            conn.Open();
+            SqliteCommand command = new SqliteCommand("SELECT DISTINCT os FROM pages", conn);
+            var reader = command.ExecuteReader();
+           
+            SortedSet<string> os = new SortedSet<string>();
+            while (reader.Read()) os.Add(reader.GetString(0));
+            reader.Dispose();
+            conn.Dispose();
+
+            return os;
+        }
+
+        private static string GetLanguage()
+        {
+            var languages = ListLanguages();
+            return !languages.Contains(Language) ? "en" : Language;
+        }
+
+        private static int GetPage(string page, string language = null, string os = null)
         {
             page = page.TrimStart();
             CheckDb();
             
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
-            SqliteCommand command = new SqliteCommand("SELECT path FROM pages WHERE name = @name AND lang = @lang AND (os = @os OR os = 'common')", conn);
+            SqliteCommand command = new SqliteCommand(
+                "SELECT path FROM pages WHERE name = @name AND lang = @lang AND (os = @os OR os = 'common')",
+                conn);
             command.Parameters.Add(new SqliteParameter("@name", page));
-            command.Parameters.Add(new SqliteParameter("@os", GetOs()));
-            command.Parameters.Add(new SqliteParameter("@lang", "en"));
+            command.Parameters.Add(new SqliteParameter("@os", os ?? GetOs()));
+            command.Parameters.Add(new SqliteParameter("@lang", language ?? GetLanguage()));
 
             var reader = command.ExecuteReader();
 
@@ -112,7 +185,8 @@ namespace tldr_sharp
                 reader = command.ExecuteReader();
                 if (!reader.HasRows)
                 {
-                    Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
+                    Console.WriteLine(
+                        "Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
                     return 2;
                 }
             }
@@ -161,23 +235,20 @@ namespace tldr_sharp
             Update();
         }
 
-        private static void ListAll(bool ignorePlatform)
+        private static void ListAll(bool ignorePlatform, bool singleColumn)
         {
             CheckDb();
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
             SqliteCommand command = conn.CreateCommand();
             if (ignorePlatform)
-            {
                 command.CommandText = "SELECT name FROM pages WHERE lang = @lang";
-            }
             else
             {
                 command.CommandText = "SELECT name FROM pages WHERE lang = @lang AND (os = @os OR os = 'common')";
                 command.Parameters.Add(new SqliteParameter("@os", GetOs()));
             }
-            
-            command.Parameters.Add(new SqliteParameter("@lang", "en"));
+            command.Parameters.Add(new SqliteParameter("@lang", GetLanguage()));
             
             var reader = command.ExecuteReader();
             var results = new List<string>();
@@ -186,17 +257,28 @@ namespace tldr_sharp
                 results.Add(reader.GetString(0));
             }
 
-            Console.WriteLine(string.Join(", ", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort())));
+            Console.WriteLine(singleColumn
+                ? string.Join("\n", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort()))
+                : string.Join(", ", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort())));
         }
-        
 
-        private static void ShowHelp(OptionSet p)
+
+        private static SortedSet<string> ListLanguages()
         {
-            Console.WriteLine("Usage: tldr command [options]\n");
-            Console.WriteLine("Simplified and community-driven man pages\n");
-            p.WriteOptionDescriptions(Console.Out);
-        }
+            CheckDb();
+            SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
+            conn.Open();
+            SqliteCommand command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn);
+            var reader = command.ExecuteReader();
+           
+            SortedSet<string> languages = new SortedSet<string>();
+            while (reader.Read()) languages.Add(reader.GetString(0));
+            reader.Dispose();
+            conn.Dispose();
 
+            return languages;
+
+        }
 
         private static void Update()
         {
@@ -254,7 +336,10 @@ namespace tldr_sharp
             
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
-            SqliteCommand command = new SqliteCommand("CREATE TABLE pages (name VARCHAR(100), path TEXT, os VARCHAR(10), lang VARCHAR(2))", conn);
+            SqliteCommand command = new SqliteCommand(
+                "CREATE TABLE pages (name VARCHAR(100), path TEXT, os VARCHAR(10), lang VARCHAR(2))",
+                conn);
+            
             command.ExecuteNonQuery();
             command.Dispose();
             SqliteTransaction transaction = conn.BeginTransaction();

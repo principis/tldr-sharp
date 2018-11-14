@@ -15,7 +15,7 @@ On ubuntu install mono-complete
 ## Installing
 ### Linux
 Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
-```bash
+```
 wget <linux_install.sh url>
 chmod +x linux_install.sh
 ./linux_install.sh
@@ -23,7 +23,7 @@ chmod +x linux_install.sh
 
 #### Manual
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
-```bash
+```
 mkdir tldr
 tar xzf v1.1.1.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
@@ -38,14 +38,16 @@ Sometime in the future....
 ## Usage
 ```
 Usage: tldr command [options]
-
 Simplified and community-driven man pages
-
   -h, --help                 Display this help text.
   -l, --list                 Show all pages for the current platform
   -a, --list-all             Show all pages
   -u, --update               Update the local cache.
   -c, --clear-cache          Clear the local cache.
+      --os=VALUE             Override the default OS
+      --list-os              List all OS's
+      --lang=VALUE           Override the default language
+      --list-languages       List all languages
 ```
 
 ## License
