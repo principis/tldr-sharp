@@ -34,51 +34,62 @@ namespace tldr_sharp
 
             string language = null;
             string os = null;
+
+            bool markdown = false;
+            string render = null;
             
             OptionSet options = new OptionSet
             {
                 "Usage: tldr command [options]\n",
                 "Simplified and community-driven man pages\n",
                 {
-                    "h|help", "Display this help text.",
-                    h => showHelp = h != null
-                },
-                {
-                    "l|list", "Show all pages for the current platform",
-                    l => list = l != null
-                },
-                {
-                    "a|list-all", "Show all pages",
+                    "a|list-all", "List all pages",
                     a => list = ignorePlatform = a != null
                 },
                 {
-                    "1", "Show all pages in single column",
-                    a => singleColumn = a != null, true
-                },
-                {
-                    "u|update", "Update the local cache.",
-                    u => update = true
-                },
-                {
-                    "c|clear-cache", "Clear the local cache.",
+                    "c|clear-cache", "Clear the local cache",
                     c => ClearCache()
                 },
                 {
-                    "os=", "Override the default OS",
-                    o => os = o
+                    "f=|render=", "Render a specific markdown file",
+                    v => render = v
+                },
+                {
+                    "h|help", "Display this help text",
+                    h => showHelp = h != null
+                },
+                {
+                    "l|list", "List all pages for the current platform",
+                    l => list = l != null
                 },
                 {
                     "list-os", "List all OS's",
                     o => Console.WriteLine(string.Join("\n", ListOs()))
                 },
                 {
+                    "list-languages", "List all languages",
+                    la => Console.WriteLine(string.Join("\n",
+                        ListLanguages().Select(x => x + ": " + CultureInfo.GetCultureInfo(x).EnglishName)))
+                },
+                {
                     "lang=", "Override the default language",
                     la => language = la
                 },
                 {
-                    "list-languages", "List all languages",
-                    la => Console.WriteLine(string.Join("\n",
-                        ListLanguages().Select(x => x + ": " + CultureInfo.GetCultureInfo(x).EnglishName)))
+                    "m|markdown", "Show the markdown source of a page",
+                    v => markdown = v != null
+                },
+                {
+                    "os=", "Override the default OS",
+                    o => os = o
+                },
+                {
+                    "u|update", "Update the local cache",
+                    u => update = true
+                },
+                {
+                    "1", "List all pages in single column",
+                    a => singleColumn = a != null, true
                 }
             };
 
@@ -92,10 +103,14 @@ namespace tldr_sharp
                 Console.WriteLine(e.Message);
                 return 1;
             }
-            
             if (showHelp || args.Length == 0)
             {
                 options.WriteOptionDescriptions(Console.Out);
+                return args.Length == 0 ? 1 : 0;
+            }
+            if (list)
+            {
+                ListAll(ignorePlatform, singleColumn);
                 return 0;
             }
             if (update)
@@ -103,12 +118,13 @@ namespace tldr_sharp
                 Update();
                 return 0;
             }
-            if (list)
+            if (render != null)
             {
-                ListAll(ignorePlatform, singleColumn);
-                return 0;
+                return Render(render);
             }
-
+            
+            
+            
             string page = "";
             foreach (string arg in extra)
             {
@@ -117,9 +133,9 @@ namespace tldr_sharp
                     if (page.Equals("")) Console.WriteLine("error: unknown option '{0}'", arg);
                     return 1;
                 }
-                page += $" {arg}";
+                page += string.Format(" {0}", arg);
             }
-            return page.Trim().Length > 0 ? GetPage(page, language, os) : 0;
+            return page.Trim().Length > 0 ? GetPage(page, language, os, markdown) : 0;
         }
 
         private static string GetOs()
@@ -161,7 +177,7 @@ namespace tldr_sharp
             return !languages.Contains(Language) ? "en" : Language;
         }
 
-        private static int GetPage(string page, string language = null, string os = null)
+        private static int GetPage(string page, string language = null, string os = null, bool markdown = false)
         {
             page = page.TrimStart();
             CheckDb();
@@ -194,6 +210,20 @@ namespace tldr_sharp
             reader.Read();
             string path = reader.GetString(0);
 
+            if (markdown)
+                Console.WriteLine(File.ReadAllText(path));
+            else
+                return Render(path);
+            return 0;
+        }
+
+        private static int Render(string path)
+        {
+            if (!File.Exists(path))
+            {
+                Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
+                return 1;
+            }
             foreach (string line in File.ReadLines(path))
             {
                 string curLine = line;
@@ -206,25 +236,27 @@ namespace tldr_sharp
                 {
                     curLine = line.Replace("{{", "\x1b[32m").Replace("}}", "\x1b[31m");
                 }
+
                 switch (curLine[0])
                 {
                     case '#':
-                       Console.WriteLine("\x1B[4m\x1b[1m"+ curLine.Substring(2) + "\x1b[0m\n");
-                       break;
+                        Console.WriteLine("\x1B[4m\x1b[1m" + curLine.Substring(2) + "\x1b[0m\n");
+                        break;
                     case '>':
-                       Console.WriteLine("\x1b[1m" + curLine.Substring(2) + "\x1b[0m");
-                       break;
+                        Console.WriteLine("\x1b[1m" + curLine.Substring(2) + "\x1b[0m");
+                        break;
                     case '-':
-                       Console.WriteLine("\x1b[39m\n" + curLine);
-                       break;
+                        Console.WriteLine("\x1b[39m\n" + curLine);
+                        break;
                     case '`':
-                       Console.WriteLine("  \x1b[31m" + curLine.Trim('`'));
-                       break;
+                        Console.WriteLine("  \x1b[31m" + curLine.Trim('`'));
+                        break;
                     default:
-                       Console.WriteLine(curLine);
-                       break;
+                        Console.WriteLine(curLine);
+                        break;
                 }
             }
+
             return 0;
         }
 
@@ -301,10 +333,9 @@ namespace tldr_sharp
             
             Directory.CreateDirectory(tmpPath);
             
-           
             using (var client = new WebClient())
             {
-                client.DownloadFile("https://tldr-pages.github.io/assets/tldr.zip", zipPath);
+                client.DownloadFile("https://tldr.sh/assets/tldr.zip", zipPath);
             }
             
             using (Stream stream = File.OpenRead(zipPath))

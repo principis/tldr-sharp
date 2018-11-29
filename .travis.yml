@@ -1,7 +1,7 @@
 language: csharp
 solution: tldr-sharp.sln
 script:
-- msbuild /p:Configuration=Release tldr-sharp.sln
+- msbuild /p:Configuration=Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
 - bash scripts/test.sh
 
 after_success:
