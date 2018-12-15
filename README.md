@@ -7,10 +7,9 @@ A C# based command-line client for [tldr](https://github.com/tldr-pages/tldr).
 ![tldr screenshot](screenshot.png)
 
 ## Requirements
-* Mono
+Because of TLS 1.2 support Mono >= 4.8 is required. If your distro comes with an older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
+* Mono >= 4.8 because of TLS 1.2 support
 * Mono.Data.Sqlite
-
-On ubuntu install mono-complete
 
 ## Installing
 ### Linux

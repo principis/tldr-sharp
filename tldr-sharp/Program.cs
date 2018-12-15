@@ -133,7 +133,7 @@ namespace tldr_sharp
                     if (page.Equals("")) Console.WriteLine("error: unknown option '{0}'", arg);
                     return 1;
                 }
-                page += string.Format(" {0}", arg);
+                page += $" {arg}";
             }
             return page.Trim().Length > 0 ? GetPage(page, language, os, markdown) : 0;
         }
