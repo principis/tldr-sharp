@@ -4,6 +4,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 
     cd tldr-sharp/bin/Release
     tar czf "../$TRAVIS_TAG.tar.gz" *
+    zip -r "../$TRAVIS_TAG.zip" *
 
     sed -i "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/g" ../../../scripts/linux_install.sh
 fi

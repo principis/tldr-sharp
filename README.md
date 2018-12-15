@@ -9,7 +9,6 @@ A C# based command-line client for [tldr](https://github.com/tldr-pages/tldr).
 ## Requirements
 Because of TLS 1.2 support Mono >= 4.8 is required. If your distro comes with an older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
 * Mono >= 4.8 because of TLS 1.2 support
-* Mono.Data.Sqlite
 
 ## Installing
 ### Linux
@@ -32,7 +31,8 @@ sudo chmod +x tldr
 ```
 
 ### Windows
-Sometime in the future....
+Extract the latest [release](https://github.com/principis/tldr-sharp/releases) and download the latest  [sqlite3 dll](https://www.sqlite.org/download.html). 
+Extract the dll in the same folder as tldr_sharp.exe.
 
 ## Usage
 ```

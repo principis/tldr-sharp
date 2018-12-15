@@ -1,5 +1,8 @@
 language: csharp
 solution: tldr-sharp.sln
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y zip
 script:
 - msbuild /p:Configuration=Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
 - bash scripts/test.sh
@@ -14,6 +17,7 @@ deploy:
   file_glob: true
   file: 
     - tldr-sharp/bin/v*.tar.gz
+    - tldr-sharp/bin/v*.zip
     - scripts/linux_install.sh
   skip_cleanup: true
   on:
