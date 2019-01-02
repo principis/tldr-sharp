@@ -59,7 +59,7 @@ namespace tldr_sharp
                     h => showHelp = h != null
                 },
                 {
-                    "l|list", "List all pages for the current platform",
+                    "l|list", "List all pages for the current platform and language",
                     l => list = l != null
                 },
                 {
@@ -69,7 +69,17 @@ namespace tldr_sharp
                 {
                     "list-languages", "List all languages",
                     la => Console.WriteLine(string.Join("\n",
-                        ListLanguages().Select(x => x + ": " + CultureInfo.GetCultureInfo(x).EnglishName)))
+                        ListLanguages().Select(x =>
+                        {
+                            try
+                            {
+                                return x + ": " + CultureInfo.GetCultureInfo(x).EnglishName;
+                            }
+                            catch (CultureNotFoundException)
+                            {
+                                return null;
+                            }
+                        }).SkipWhile(x => x == null)))
                 },
                 {
                     "lang=", "Override the default language",
@@ -110,7 +120,7 @@ namespace tldr_sharp
             }
             if (list)
             {
-                ListAll(ignorePlatform, singleColumn);
+                ListAll(ignorePlatform, singleColumn, language, os);
                 return 0;
             }
             if (update)
@@ -267,7 +277,7 @@ namespace tldr_sharp
             Update();
         }
 
-        private static void ListAll(bool ignorePlatform, bool singleColumn)
+        private static void ListAll(bool ignorePlatform, bool singleColumn, string language = null, string os = null)
         {
             CheckDb();
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
@@ -278,9 +288,9 @@ namespace tldr_sharp
             else
             {
                 command.CommandText = "SELECT name FROM pages WHERE lang = @lang AND (os = @os OR os = 'common')";
-                command.Parameters.Add(new SqliteParameter("@os", GetOs()));
+                command.Parameters.Add(new SqliteParameter("@os", os ?? GetOs()));
             }
-            command.Parameters.Add(new SqliteParameter("@lang", GetLanguage()));
+            command.Parameters.Add(new SqliteParameter("@lang", language ?? GetLanguage()));
             
             var reader = command.ExecuteReader();
             var results = new List<string>();
