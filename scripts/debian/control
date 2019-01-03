@@ -1,0 +1,9 @@
+Package: tldr-sharp
+Version: VERSION_PLACEHOLDER
+Section: universe/utils
+Priority: optional
+Maintainer: Arthur Bols <arthur.bolsbe@gmail.com>
+Architecture: amd64
+Depends: mono-runtime (>= 4.8), libmono-corlib4.5-cil (>= 4.8), libmono-system4.0-cil (>= 4.8), libmono-system-data4.0-cil (>= 4.8), libmono-system-core4.0-cil (>= 4.8), libmono-sqlite4.0-cil (>= 4.8), libsqlite3-0
+Homepage: https://github.com/principis/tldr-sharp#readme
+Description: C# tldr client
