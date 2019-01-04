@@ -23,7 +23,7 @@ chmod +x linux_install.sh
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```
 mkdir tldr
-tar xzf v1.3.3.tar.gz -C tldr
+tar xzf v1.4.0.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
