@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -ex
+set -e
 
 if ([ ! -z "$TRAVIS_TAG" ]) && 
       [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
@@ -17,7 +17,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
     tempdir=$(mktemp -d 2>/dev/null || mktemp -d -t tmp)
     mkdir -p "$tempdir/usr/lib/tldr-sharp"
     cp * "$tempdir/usr/lib/tldr-sharp"
-    chmod 755 "$tempdir/usr/lib/tldr-sharp/*"
+    chmod 755 "$tempdir/usr/lib/tldr-sharp/"*
 
     mkdir -p "$tempdir/usr/bin"
     install -Dm755 "../../../scripts/debian/tldr-sharp" "$tempdir/usr/bin/tldr-sharp"
@@ -29,7 +29,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 
     sed -i "s/VERSION_PLACEHOLDER/${TRAVIS_TAG#v}/g" "$tempdir/DEBIAN/control"
 
-    fakeroot dpkg-deb --build "$tempdir" "../tldr-sharp_${version}_amd64.deb"
+    fakeroot dpkg-deb --build "$tempdir" "../tldr-sharp_${TRAVIS_TAG}_amd64.deb"
 
 fi
 
