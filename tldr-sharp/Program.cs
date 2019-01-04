@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -98,6 +99,14 @@ namespace tldr_sharp
                     u => update = true
                 },
                 {
+                    "V|version", "Show version information",
+                    v =>
+                    {
+                        Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version);
+                        Environment.Exit(0);
+                    }
+                },
+                {
                     "1", "List all pages in single column",
                     a => singleColumn = a != null, true
                 }
@@ -132,8 +141,6 @@ namespace tldr_sharp
             {
                 return Render(render);
             }
-            
-            
             
             string page = "";
             foreach (string arg in extra)

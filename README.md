@@ -23,7 +23,7 @@ chmod +x linux_install.sh
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```
 mkdir tldr
-tar xzf v1.3.2.tar.gz -C tldr
+tar xzf v1.3.3.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
@@ -31,7 +31,7 @@ sudo chmod +x tldr
 ```
 
 ### Windows
-Extract the latest [release](https://github.com/principis/tldr-sharp/releases) and download the latest  [sqlite3 dll](https://www.sqlite.org/download.html). 
+Extract the latest [release](https://github.com/principis/tldr-sharp/releases) and download the latest [sqlite3 dll](https://www.sqlite.org/download.html). 
 Extract the dll in the same folder as tldr_sharp.exe.
 
 ## Usage

@@ -100,3 +100,10 @@ fi
 if [ $? != 0 ]; then
     exit 1
 fi
+
+# Test version
+./tldr_sharp.exe tldr -V >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+

@@ -7,7 +7,7 @@ addons:
 
 solution: tldr-sharp.sln
 script:
-- msbuild /p:Configuration=Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
+- msbuild /target:Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
 - bash scripts/test.sh
 
 before_deploy:
@@ -18,11 +18,11 @@ deploy:
   api_key:
     secure: DNhjx3yNFKyirettRCkScbOwYRYcdcFoSy8jzLsuF2lzjiyS5w9pTV8Pmu1SbjtBksZJJbfFw9QdAX1kJMVwASYgq9UCqyb13C9tg4bLGg+L4df5a1mdei4y4OTlWxF9iKQcllSzyWp52SnYfHSChQx54z6eEs6b8zosMveES1DE0GDnujDPmibrVomIjY01wrR6PLCEAB/V7jkpGcCeTe1P+58obGzH9u9xaMCR7mwdRBQ+KKSTyzlS3jp7GvgTUU9lYFnB2vDlwu5jgAl/ozKUdMVs5KP6hFmmT7GT8jM2mTUZC7985dLdIPi8f9Om1tNpaRJnDutju1c99qD92CisrMgTm2fwj009bOPvtItkmC/qcQokLWZRjcP5HLJyiNLFcGeLK1p6cJ1E3sQNkZ198N4UdB6tlhPBvM6OXGhdCh1BWGAllBli5VC/teaLbgNwEN3hJXjp85LBC0EL+vfsxcDMG2/2ytpdzF6h3Tb/L2J0DjO/WN32+NdY+oRRsrH+oe3bKoe4C+OP0/FxGay0nE1KJQUtxxuDBQ7AOG4pKDrmglr7o9sj6Y9XiNToTbMWAFclwBWMgaTa2RH6FKyRp9wLXj5PcFOfWCxOnEBKtvOxxXHW48/ppQoXTE+Kz0/HHBwS/aVaLapZ/OggaThXIy3qg/mja4XDxlm2uW4=
   file_glob: true
-  file: 
-    - tldr-sharp/bin/v*.tar.gz
-    - tldr-sharp/bin/v*.zip
+  file:
+    - tldr-sharp/bin/*.tar.gz
+    - tldr-sharp/bin/*.zip
     - tldr-sharp/bin/*.deb
-    - scripts/linux_install.sh
+    - itldr-sharp/bin/*.sh
   skip_cleanup: true
   on:
     tags: true
