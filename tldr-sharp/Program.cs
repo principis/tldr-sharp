@@ -198,15 +198,17 @@ namespace tldr_sharp
         {
             page = page.TrimStart();
             CheckDb();
+            language = language ?? GetLanguage();
+            os = os ?? GetOs();
             
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
             SqliteCommand command = new SqliteCommand(
-                "SELECT path FROM pages WHERE name = @name AND lang = @lang AND (os = @os OR os = 'common')",
+                "SELECT os FROM pages WHERE name = @name AND lang = @lang AND (os = @os OR os = 'common') ORDER BY os DESC LIMIT 1",
                 conn);
             command.Parameters.Add(new SqliteParameter("@name", page));
-            command.Parameters.Add(new SqliteParameter("@os", os ?? GetOs()));
-            command.Parameters.Add(new SqliteParameter("@lang", language ?? GetLanguage()));
+            command.Parameters.Add(new SqliteParameter("@os", os));
+            command.Parameters.Add(new SqliteParameter("@lang", language));
 
             var reader = command.ExecuteReader();
 
@@ -223,10 +225,19 @@ namespace tldr_sharp
                     return 2;
                 }
             }
-
+            
             reader.Read();
-            string path = reader.GetString(0);
+            os = reader.GetString(0);
 
+            string path = Path.Combine(Path.GetDirectoryName(DbPath),
+                "pages" + (language != "en" ? $".{language}" : string.Empty), os, $"{page}.md");
+            
+            if (!File.Exists(path))
+            {
+                Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
+                return 1;
+            }
+            
             if (markdown)
                 Console.WriteLine(File.ReadAllText(path));
             else
@@ -273,7 +284,6 @@ namespace tldr_sharp
                         break;
                 }
             }
-
             return 0;
         }
 
@@ -310,7 +320,6 @@ namespace tldr_sharp
                 ? string.Join("\n", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort()))
                 : string.Join(", ", results.OrderBy(x => x, StringComparer.Ordinal.WithNaturalSort())));
         }
-
 
         private static SortedSet<string> ListLanguages()
         {
@@ -385,16 +394,26 @@ namespace tldr_sharp
             SqliteConnection conn = new SqliteConnection("Data Source=" + DbPath + ";");
             conn.Open();
             SqliteCommand command = new SqliteCommand(
-                "CREATE TABLE pages (name VARCHAR(100), path TEXT, os VARCHAR(10), lang VARCHAR(2))",
+                "CREATE TABLE pages (name VARCHAR(100), os VARCHAR(10), lang VARCHAR(2))",
                 conn);
-            
             command.ExecuteNonQuery();
             command.Dispose();
+            
             SqliteTransaction transaction = conn.BeginTransaction();
             command = conn.CreateCommand();
             command.Transaction = transaction;
             command.CommandType = CommandType.Text;
-            command.CommandText = "INSERT INTO pages (name, path, os, lang) VALUES(@name, @path, @os, @lang)";
+            
+            // Create indexes
+            command.CommandText = "CREATE INDEX os_names ON pages (os, name)";
+            command.ExecuteNonQuery();
+            command.CommandText = "CREATE INDEX lang_names ON pages (lang, name)";
+            command.ExecuteNonQuery();
+            command.CommandText = "CREATE INDEX names_index ON pages (lang, os, name)";
+            command.ExecuteNonQuery();
+
+            // Add pages
+            command.CommandText = "INSERT INTO pages (name, os, lang) VALUES(@name, @os, @lang)";
             
             foreach (var dir in cacheDir.EnumerateDirectories("*pages*"))
             {
@@ -402,12 +421,10 @@ namespace tldr_sharp
                 if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
                 foreach (var osDir in dir.EnumerateDirectories())
                 {
-                    string os = osDir.Name;
                     foreach (var file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
                     {
                         command.Parameters.AddWithValue("@name", Path.GetFileNameWithoutExtension(file.Name));
-                        command.Parameters.AddWithValue("@path", file.FullName);
-                        command.Parameters.AddWithValue("@os", os);
+                        command.Parameters.AddWithValue("@os", osDir.Name);
                         command.Parameters.AddWithValue("@lang", lang);
                         command.ExecuteNonQuery();
                     }
