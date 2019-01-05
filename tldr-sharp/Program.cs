@@ -274,10 +274,10 @@ namespace tldr_sharp
                         Console.WriteLine("\x1b[1m" + curLine.Substring(2) + "\x1b[0m");
                         break;
                     case '-':
-                        Console.WriteLine("\x1b[39m\n" + curLine);
+                        Console.WriteLine("\x1b[39m\n" + curLine + "\x1b[0m");
                         break;
                     case '`':
-                        Console.WriteLine("  \x1b[31m" + curLine.Trim('`'));
+                        Console.WriteLine("  \x1b[31m" + curLine.Trim('`') + "\x1b[0m");
                         break;
                     default:
                         Console.WriteLine(curLine);
