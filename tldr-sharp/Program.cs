@@ -265,6 +265,18 @@ namespace tldr_sharp
                     curLine = line.Replace("{{", "\x1b[32m").Replace("}}", "\x1b[31m");
                 }
 
+                int urlStart = curLine.IndexOf("<");
+                if (urlStart != -1)
+                {
+                    int urlEnd = curLine.Substring(urlStart).IndexOf(">");
+                    if (urlEnd != -1)
+                    {
+                        curLine = curLine.Substring(0, urlStart) + "\x1b[21m\x1b[4m" +
+                                  curLine.Substring(urlStart + 1, urlEnd - 1) + "\x1b[0m" +
+                                  curLine.Substring(urlStart + urlEnd + 1);
+                    }
+                }
+
                 switch (curLine[0])
                 {
                     case '#':
