@@ -223,11 +223,10 @@ namespace tldr_sharp
             language = language ?? GetLanguage();
             var preferredLanguages = new List<string> {language, Language};
 
-            var langs = Environment.GetEnvironmentVariable("LANGUAGE")?.Split(':');
+            var langs = Environment.GetEnvironmentVariable("LANGUAGE")?.Split(':').Where(x => !x.Equals(string.Empty)).ToList();
             if (langs != null)
             {
                 preferredLanguages.AddRange(langs);
-
             }
             platform = platform ?? GetPlatform();
             string altPlatform = null;

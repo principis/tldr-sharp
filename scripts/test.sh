@@ -1,5 +1,5 @@
 #! /bin/bash
- 
+ set -x
 cd tldr-sharp/bin/Release
  
 chmod +x tldr_sharp.exe
@@ -78,13 +78,13 @@ if [ $? == 0 ]; then
 fi 
 
 # test os 
-mono tldr_sharp.exe tldr --os=linux >/dev/null
+mono tldr_sharp.exe tldr --platform=linux >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test os non-existing page
-mono tldr_sharp.exe dir --os=linux >/dev/null
+mono tldr_sharp.exe giberishdsfsd --platform=linux >/dev/null
 if [ $? == 0 ]; then
     exit 1
 fi
@@ -102,7 +102,7 @@ if [ $? != 0 ]; then
 fi
 
 # Test version
-mono tldr_sharp.exe tldr -V >/dev/null
+mono tldr_sharp.exe tldr -v >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
