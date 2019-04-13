@@ -4,7 +4,6 @@ addons:
   apt:
     packages:
     - fakeroot
-    - rpm
 
 solution: tldr-sharp.sln
 script:

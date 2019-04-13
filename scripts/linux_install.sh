@@ -6,8 +6,8 @@ tldrLib='/usr/local/lib'
 tldrBin='/usr/local/bin'
 
 cd /tmp
-if [ -d "/tmp/tldr" ]; then
-    sudo rm -rf "/tmp/tldr"
+if [ -d "/tmp/tldr" ] || [ -f "/tmp/tldr" ]; then
+    rm -rf "/tmp/tldr"
 fi
 
 # Download release
@@ -23,9 +23,9 @@ fi
 
 # Extract release
 
-tar xzf VERSION_PLACEHOLDER.tar.gz -C tldr
-rm VERSION_PLACEHOLDER.tar.gz
-if [ -d "$tldrLib/tldr" ]; then
+tar xzf FILE_PLACEHOLDER.tar.gz -C tldr
+rm FILE_PLACEHOLDER.tar.gz
+if [ -d "$tldrLib/tldr" ] || [ -f "$tldrLib/tldr" ]; then
     sudo rm -rf "$tldrLib/tldr" 2> /dev/null
 fi
 
@@ -38,6 +38,8 @@ if [ $retval != 0 ]; then
     echo '[ERROR] Failed to move to install location!'
     exit 1
 fi
+
+rm -rf "/tmp/tldr"
 
 # Download executable
 

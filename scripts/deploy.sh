@@ -6,15 +6,20 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
       [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
  
     create_archives() {
-	# Windows archives
-	zip -r "tldr-sharp_${TRAVIS_TAG#v}_windows${PLATFORM}.zip" $TARGET/*
+		
+		cd $TARGET
+	
+		# Windows archives
+		zip -r "../tldr-sharp_${TRAVIS_TAG#v}_windows${PLATFORM}.zip" *
 
-	# Linux archives
-	rm $TARGET/Mono.Data.Sqlite.dll || true # not necessary on linux
-	tar czf "tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.tar.gz" $TARGET/*
+		# Linux archives
+		rm $TARGET/Mono.Data.Sqlite.dll || true # not necessary on linux
+		tar czf "../tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.tar.gz" *
 
-	# Linux install scripts
-        sed -e "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/" -e "s/FILE_PLACEHOLDER/tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}/" ../../scripts/linux_install.sh > tldr-sharp_linux${PLATFORM}.sh
+		cd ..
+
+		# Linux install scripts
+			sed -e "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/" -e "s/FILE_PLACEHOLDER/tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}/" ../../scripts/linux_install.sh > tldr-sharp_linux${PLATFORM}.sh
     }
 
     build_deb() {
