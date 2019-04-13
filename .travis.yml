@@ -4,6 +4,7 @@ addons:
   apt:
     packages:
     - fakeroot
+    - rpm
 
 solution: tldr-sharp.sln
 script:
@@ -22,7 +23,7 @@ deploy:
     - tldr-sharp/bin/*.tar.gz
     - tldr-sharp/bin/*.zip
     - tldr-sharp/bin/*.deb
-    - itldr-sharp/bin/*.sh
+    - tldr-sharp/bin/*.sh
   skip_cleanup: true
   on:
     tags: true
