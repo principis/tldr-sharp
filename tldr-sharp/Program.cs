@@ -8,7 +8,6 @@ using Mono.Options;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using NaturalSort.Extension;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -101,7 +100,9 @@ namespace tldr_sharp
                     "v|version", "Show version information.",
                     v =>
                     {
-                        Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version + ", spec v1.0");
+                        Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major + "." +
+                                          Assembly.GetExecutingAssembly().GetName().Version.Minor + "." + 
+                                          Assembly.GetExecutingAssembly().GetName().Version.MajorRevision + ", spec v1.0");
                         Environment.Exit(0);
                     }
                 }
