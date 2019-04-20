@@ -97,6 +97,14 @@ namespace tldr_sharp
                     u => update = true
                 },
                 {
+                    "self-update", "Check for tldr-sharp updates.",
+                    u =>
+                    {
+                        SelfUpdate();
+                        Environment.Exit(0);
+                    }
+                },
+                {
                     "v|version", "Show version information.",
                     v =>
                     {
@@ -542,6 +550,27 @@ namespace tldr_sharp
                 }
             }
             Console.WriteLine("Cache cleared.");
+        }
+
+        private static void SelfUpdate()
+        {
+
+            using (var webclient = new WebClient())
+            {
+                webclient.Headers.Add ("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; " + "Windows NT 5.2; .NET CLR 1.0.3705;)");
+                var json = webclient.DownloadString(
+                    "https://api.github.com/repos/principis/tldr-sharp/releases/latest");
+                var remoteVersion = new Version(json.Substring(json.IndexOf("tag_name") + 12, 5));
+
+                if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0)
+                {
+                    Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion, "https://github.com/principis/tldr-sharp/releases/latest");
+                }
+                else
+                {
+                    Console.WriteLine("tldr-sharp is up to date!");
+                }
+            }
         }
     }
 }
