@@ -219,7 +219,7 @@ namespace tldr_sharp
 
         private static int GetPage(string page, string language = null, string platform = null, bool markdown = false)
         {
-            page = page.TrimStart();
+            page = page.TrimStart().Replace(' ', '-');
             CheckDb();
             language = language ?? GetLanguage();
             var preferredLanguages = new List<string> {language, Language};
@@ -312,7 +312,7 @@ namespace tldr_sharp
                 return 1;
             }
 
-            if (diffPlatform != null)
+            if (diffPlatform != null && diffPlatform != "common")
             {
                 Console.WriteLine("\x1B[31m\x1b[1m[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() + " PLATFORM!\x1b[0m\n");
             }
