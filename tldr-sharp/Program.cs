@@ -451,17 +451,16 @@ namespace tldr_sharp
                 dir.Delete(true); 
             }
 
-            string tmpPath = Path.Combine(Path.GetTempPath(), "tldr");
-            string zipPath = Path.Combine(tmpPath, "tldr.zip");
-            
-            Directory.CreateDirectory(tmpPath);
+            string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            if (File.Exists(tmpPath)) File.Delete(tmpPath);
+            if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
             
             using (var client = new WebClient())
             {
-                client.DownloadFile("https://tldr.sh/assets/tldr.zip", zipPath);
+                client.DownloadFile("https://tldr.sh/assets/tldr.zip", tmpPath);
             }
             
-            using (Stream stream = File.OpenRead(zipPath))
+            using (Stream stream = File.OpenRead(tmpPath))
             using (var reader = ReaderFactory.Open(stream))
             {
                 while (reader.MoveToNextEntry())
@@ -477,7 +476,7 @@ namespace tldr_sharp
                 }
             }
             
-            File.Delete(zipPath);
+            File.Delete(tmpPath);
             UpdateIndex();
         }
 

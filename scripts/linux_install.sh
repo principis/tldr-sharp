@@ -61,4 +61,7 @@ if [ $retval != 0 ]; then
     exit 1
 fi
 
+# Delete tmp
+rm tldr
+
 echo 'Finished'
