@@ -22,7 +22,8 @@ namespace tldr_sharp
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache",
                 "index.sqlite");
         private static readonly string Language = CultureInfo.CurrentCulture.Name;
-        
+        private const string ClientSpecVersion = "v1.1";
+
         public static int Main(string[] args)
         {
             bool showHelp = false;
@@ -110,7 +111,8 @@ namespace tldr_sharp
                     {
                         Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major + "." +
                                           Assembly.GetExecutingAssembly().GetName().Version.Minor + "." + 
-                                          Assembly.GetExecutingAssembly().GetName().Version.MajorRevision + ", spec v1.0");
+                                          Assembly.GetExecutingAssembly().GetName().Version.Build + 
+                                          ", spec " + ClientSpecVersion);
                         Environment.Exit(0);
                     }
                 }
@@ -251,7 +253,7 @@ namespace tldr_sharp
                     results = QueryPage(page);
                     if (results.Count == 0)
                     {
-                        Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
+                        Console.WriteLine("Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}", page);
                         return 2;
                     }
                 }
@@ -286,7 +288,7 @@ namespace tldr_sharp
                     {
                         if (altPlatform == string.Empty)
                         {
-                            Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
+                            Console.WriteLine("Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}", page);
                             return 2;
                         }
                         platform = altPlatform;
