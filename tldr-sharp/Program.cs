@@ -244,22 +244,24 @@ namespace tldr_sharp
             
             if (!results.Contains((platform, language)))
             {
+                if (results.Count == 0)
+                {
+                    Console.Write("Page not found. ");
+                    Update();
+                    results = QueryPage(page);
+                    if (results.Count == 0)
+                    {
+                        Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
+                        return 2;
+                    }
+                }
+                
                 if (results.Contains(("common", language)))
                 {
                     platform = "common";
                 } 
                 else
                 {
-                    Console.Write("Page not found. ");
-                    Update();
-                    results = QueryPage(page);
-
-                    if (results.Count == 0)
-                    {
-                        Console.WriteLine("Page not found.\nFeel free to send a pull request to: https://github.com/tldr-pages/tldr");
-                        return 2;
-                    }
-
                     bool found = false;
                     var altLanguage = string.Empty;
 
@@ -306,7 +308,7 @@ namespace tldr_sharp
                 Console.WriteLine(File.ReadAllText(path));
             else
             {
-                return Render(path, altPlatform ?? platform);
+                return Render(path, altPlatform);
             }
 
             return 0;
@@ -320,7 +322,7 @@ namespace tldr_sharp
                 return 1;
             }
 
-            if (diffPlatform != null && diffPlatform != "common")
+            if (diffPlatform != null)
             {
                 Console.WriteLine("\x1B[31m\x1b[1m[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() + " PLATFORM!\x1b[0m\n");
             }
