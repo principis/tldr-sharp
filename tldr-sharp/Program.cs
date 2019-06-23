@@ -11,6 +11,7 @@ using System.Net;
 using NaturalSort.Extension;
 using SharpCompress.Common;
 using SharpCompress.Readers;
+using Version = System.Version;
 
 namespace tldr_sharp
 {
@@ -234,66 +235,40 @@ namespace tldr_sharp
             language = language ?? GetLanguage();
             var preferredLanguages = new List<string> {language, Language};
 
-            var langs = Environment.GetEnvironmentVariable("LANGUAGE")?.Split(':').Where(x => !x.Equals(string.Empty)).ToList();
-            if (langs != null)
-            {
-                preferredLanguages.AddRange(langs);
-            }
+            var langs = Environment.GetEnvironmentVariable("LANGUAGE")
+                ?.Split(':')
+                .Where(x => !x.Equals(string.Empty))
+                .ToList();
+            
+            if (langs != null) preferredLanguages.AddRange(langs);
+            
             platform = platform ?? GetPlatform();
             string altPlatform = null;
 
             var results = QueryPage(page);
-            
+
+            if (results.Count == 0)
+            {
+                Console.Write("Page not found. ");
+                Update();
+                results = QueryPage(page);
+                
+                if (results.Count == 0) return PageNotFound(page);
+            }
+
             if (!results.Contains((platform, language)))
             {
-                if (results.Count == 0)
-                {
-                    Console.Write("Page not found. ");
-                    Update();
-                    results = QueryPage(page);
-                    if (results.Count == 0)
-                    {
-                        Console.WriteLine("Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}", page);
-                        return 2;
-                    }
-                }
-                
-                if (results.Contains(("common", language)))
-                {
-                    platform = "common";
-                } 
+                if (results.Contains(("common", language))) platform = "common";
                 else
                 {
-                    bool found = false;
-                    var altLanguage = string.Empty;
-
-                    foreach (var (item1, item2) in results)
-                    {
-                        if (!preferredLanguages.Any(preferredLanguage => item2.Contains(preferredLanguage))) continue;
-                        if (item1 != platform && item1 != "common")
-                        {
-                            if (altPlatform == null)
-                            {
-                                altPlatform = item1;
-                                altLanguage = item2;
-                            }
-                            continue;
-                        }
-                        platform = item1;
-                        language = item2;
-                        found = true;
-                    }
-
-                    if (!found)
-                    {
-                        if (altPlatform == string.Empty)
-                        {
-                            Console.WriteLine("Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}", page);
-                            return 2;
-                        }
-                        platform = altPlatform;
-                        language = altLanguage;
-                    }
+                    string tmpPlatform;
+                    (tmpPlatform, language) = FindAlternativePage(results, preferredLanguages, platform);
+                    
+                    if (tmpPlatform == null || language == null) return PageNotFound(page);
+                    
+                    altPlatform = tmpPlatform;
+                    if (platform == tmpPlatform || tmpPlatform == "common") altPlatform = null;
+                    platform = tmpPlatform;
                 }
             }
 
@@ -314,6 +289,41 @@ namespace tldr_sharp
             }
 
             return 0;
+        }
+
+        private static int PageNotFound(string page)
+        {
+            Console.WriteLine("Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}", page);
+            return 2;
+        }
+
+        private static (string Platform, string Language) FindAlternativePage(IEnumerable<(string, string)> results, 
+            IReadOnlyCollection<string> preferredLanguages, string platform)
+        {
+            bool found = false;
+            var altLanguage = string.Empty;
+            string altPlatform = null;
+            string language = null;
+
+            foreach (var (item1, item2) in results)
+            {
+                if (!preferredLanguages.Any(preferredLanguage => item2.Contains(preferredLanguage))) continue;
+                if (item1 != platform && item1 != "common")
+                {
+                    if (altPlatform == null)
+                    {
+                        altPlatform = item1;
+                        altLanguage = item2;
+                    }
+                    continue;
+                }
+                platform = item1;
+                language = item2;
+                found = true;
+            }
+
+            if (found) return (platform, language);
+            return altPlatform == string.Empty ? (null, null) : (altPlatform, altLanguage);
         }
 
         private static int Render(string path, string diffPlatform = null)
