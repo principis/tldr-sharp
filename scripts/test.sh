@@ -78,7 +78,7 @@ if [ $? == 0 ]; then
 fi 
 
 # test os 
-mono tldr_sharp.exe tldr --platform=linux >/dev/null
+mono tldr_sharp.exe  --platform=linux >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
@@ -90,20 +90,36 @@ if [ $? == 0 ]; then
 fi
 
 # Test list-languages
-mono tldr_sharp.exe tldr --list-languages >/dev/null
+mono tldr_sharp.exe --list-languages >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test list-os
-mono tldr_sharp.exe tldr --list-os >/dev/null
+mono tldr_sharp.exe --list-os >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test version
-mono tldr_sharp.exe tldr -v >/dev/null
+mono tldr_sharp.exe -v >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
+# Test search
+mono tldr_sharp.exe -s tar >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+mono tldr_sharp.exe -s giberishdsfsd >/dev/null
+if [ $? == 0 ]; then
+    exit 1
+fi
+
+# Test self-update
+mono tldr_sharp.exe --self-update >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi

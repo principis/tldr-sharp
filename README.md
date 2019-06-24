@@ -38,15 +38,21 @@ Extract the dll in the same folder as tldr_sharp.exe.
 ```
 Usage: tldr command [options]
 Simplified and community-driven man pages
-  -h, --help                 Display this help text.
-  -l, --list                 Show all pages for the current platform
-  -a, --list-all             Show all pages
-  -u, --update               Update the local cache.
-  -c, --clear-cache          Clear the local cache.
-      --os=VALUE             Override the default OS
+  -a, --list-all             List all pages
+  -c, --clear-cache          Clear the local cache
+  -f, --render=VALUE         Render a specific markdown file
+  -h, --help                 Display this help text
+  -l, --list                 List all pages for the current platform and
+                               language
       --list-os              List all OS's
-      --lang=VALUE           Override the default language
       --list-languages       List all languages
+      --lang=VALUE           Override the default language
+  -m, --markdown             Show the markdown source of a page
+  -p, --platform=VALUE       Override the default OS
+  -s, --search=VALUE         Search for a string.
+  -u, --update               Update the local cache.
+      --self-update          Check for tldr-sharp updates.
+  -v, --version              Show version information.
 ```
 
 ## License
