@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using Mono.Data.Sqlite;
 using Mono.Options;
 using System.IO;
 using System.Linq;
-using System.Net;
 using NaturalSort.Extension;
-using SharpCompress.Common;
-using SharpCompress.Readers;
-using Version = System.Version;
 
 namespace tldr_sharp
 {
-    internal class Program
+    internal static class Program
     {
-        private static readonly string CachePath =
+        private const string ClientSpecVersion = "1.1";
+
+        internal const string SelfApiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest";
+        internal const string SelfUpdateUrl = "https://github.com/principis/tldr-sharp/releases/latest";
+        internal const string PagesUrl = "https://tldr.sh/assets/tldr.zip";
+
+        internal static readonly string CachePath =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
 
-        private static readonly string DbPath = Path.Combine(CachePath, "index.sqlite");
+        internal static readonly string DbPath = Path.Combine(CachePath, "index.sqlite");
 
         private static readonly string Language = CultureInfo.CurrentCulture.Name;
-        private const string ClientSpecVersion = "v1.1";
 
         public static int Main(string[] args)
         {
@@ -49,7 +49,7 @@ namespace tldr_sharp
                 },
                 {
                     "c|clear-cache", "Clear the local cache",
-                    c => ClearCache()
+                    c => Updater.ClearCache()
                 },
                 {
                     "f=|render=", "Render a specific markdown file",
@@ -108,13 +108,13 @@ namespace tldr_sharp
                 },
                 {
                     "u|update", "Update the local cache.",
-                    u => Update()
+                    u => Updater.Update()
                 },
                 {
                     "self-update", "Check for tldr-sharp updates.",
                     u =>
                     {
-                        SelfUpdate();
+                        SelfUpdater.CheckSelfUpdate();
                         Environment.Exit(0);
                     }
                 },
@@ -172,7 +172,7 @@ namespace tldr_sharp
             {
                 if (arg.StartsWith("-"))
                 {
-                    if (page.Equals("")) Console.WriteLine("error: unknown option '{0}'", arg);
+                    if (page.Equals("")) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
                     return 1;
                 }
 
@@ -288,7 +288,7 @@ namespace tldr_sharp
             if (results.Count == 0)
             {
                 Console.Write("Page not found. ");
-                Update();
+                Updater.Update();
                 results = QueryPage(page);
 
                 if (results.Count == 0) return PageNotFound(page);
@@ -440,7 +440,7 @@ namespace tldr_sharp
             if (!File.Exists(DbPath))
             {
                 Console.WriteLine("Database not found. ");
-                Update();
+                Updater.Update();
                 return;
             }
 
@@ -451,7 +451,7 @@ namespace tldr_sharp
                 if (Directory.Exists(Path.Combine(CachePath,
                     "pages" + (lang == "en-US" ? string.Empty : $".{lang}"), platform))) continue;
                 Console.WriteLine("Cache corrupted. ");
-                Update();
+                Updater.Update();
                 return;
             }
         }
@@ -503,152 +503,6 @@ namespace tldr_sharp
 
                         return languages;
                     }
-                }
-            }
-        }
-
-        private static void Update()
-        {
-            Console.WriteLine("Updating cache...");
-
-            Directory.CreateDirectory(CachePath);
-            var cacheDir = new DirectoryInfo(CachePath);
-
-            foreach (var file in cacheDir.EnumerateFiles())
-            {
-                file.Delete();
-            }
-
-            foreach (var dir in cacheDir.EnumerateDirectories())
-            {
-                dir.Delete(true);
-            }
-
-            string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            if (File.Exists(tmpPath)) File.Delete(tmpPath);
-            if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
-
-            using (var client = new WebClient())
-            {
-                client.DownloadFile("https://tldr.sh/assets/tldr.zip", tmpPath);
-            }
-
-            using (Stream stream = File.OpenRead(tmpPath))
-            using (var reader = ReaderFactory.Open(stream))
-            {
-                while (reader.MoveToNextEntry())
-                {
-                    if (!reader.Entry.IsDirectory)
-                    {
-                        reader.WriteEntryToDirectory(CachePath, new ExtractionOptions
-                        {
-                            ExtractFullPath = true,
-                            Overwrite = true
-                        });
-                    }
-                }
-            }
-
-            File.Delete(tmpPath);
-            UpdateIndex();
-        }
-
-        private static void UpdateIndex()
-        {
-            Console.WriteLine("Updating index...");
-            var cacheDir = new DirectoryInfo(CachePath);
-
-            SqliteConnection.CreateFile(DbPath);
-
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
-                conn.Open();
-                using (var command = new SqliteCommand(
-                    "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7))", conn))
-                {
-                    command.ExecuteNonQuery();
-
-                    using (var transaction = conn.BeginTransaction())
-                    {
-                        command.Transaction = transaction;
-                        command.CommandType = CommandType.Text;
-
-                        // Create indexes
-                        command.CommandText = "CREATE INDEX os_names ON pages (platform, name)";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "CREATE INDEX lang_names ON pages (lang, name)";
-                        command.ExecuteNonQuery();
-                        command.CommandText = "CREATE INDEX names_index ON pages (lang, platform, name)";
-                        command.ExecuteNonQuery();
-
-                        // Add pages
-                        command.CommandText =
-                            "INSERT INTO pages (name, platform, lang) VALUES(@name, @platform, @lang)";
-
-                        foreach (var dir in cacheDir.EnumerateDirectories("*pages*"))
-                        {
-                            var lang = "en-US";
-                            if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
-
-                            foreach (var osDir in dir.EnumerateDirectories())
-                            {
-                                foreach (var file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
-                                {
-                                    command.Parameters.AddWithValue("@name",
-                                        Path.GetFileNameWithoutExtension(file.Name));
-                                    command.Parameters.AddWithValue("@platform", osDir.Name);
-                                    command.Parameters.AddWithValue("@lang", lang);
-                                    command.ExecuteNonQuery();
-                                }
-                            }
-                        }
-
-                        transaction.Commit();
-                    }
-                }
-            }
-
-            Console.WriteLine("Cache updated.");
-        }
-
-        private static void ClearCache()
-        {
-            Console.WriteLine("Clearing cache...");
-            if (Directory.Exists(CachePath))
-            {
-                var cacheDir = new DirectoryInfo(CachePath);
-                foreach (var file in cacheDir.EnumerateFiles())
-                {
-                    file.Delete();
-                }
-
-                foreach (var dir in cacheDir.EnumerateDirectories())
-                {
-                    dir.Delete(true);
-                }
-            }
-
-            Console.WriteLine("Cache cleared.");
-        }
-
-        private static void SelfUpdate()
-        {
-            using (var webclient = new WebClient())
-            {
-                webclient.Headers.Add("user-agent",
-                    "Mozilla/4.0 (compatible; MSIE 6.0; " + "Windows NT 5.2; .NET CLR 1.0.3705;)");
-                var json = webclient.DownloadString(
-                    "https://api.github.com/repos/principis/tldr-sharp/releases/latest");
-                var remoteVersion = new Version(json.Substring(json.IndexOf("tag_name") + 12, 5));
-
-                if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0)
-                {
-                    Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion,
-                        "https://github.com/principis/tldr-sharp/releases/latest");
-                }
-                else
-                {
-                    Console.WriteLine("tldr-sharp is up to date!");
                 }
             }
         }
