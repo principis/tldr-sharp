@@ -2,28 +2,32 @@
 
 [![Build Status](https://travis-ci.org/principis/tldr-sharp.svg?branch=master)](https://travis-ci.org/principis/tldr-sharp)
 
-A C# based command-line client for [tldr](https://github.com/tldr-pages/tldr).
+A C# based, feature-rich command-line client for [tldr-pages](https://github.com/tldr-pages/tldr).
 
 ![tldr screenshot](screenshot.png)
 
 ## Requirements
-Because of TLS 1.2 support, Mono >= 4.8, built with TLS 1.2 support, is required. If your distro comes with an older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
-* Mono >= 4.8 because of TLS 1.2 support
+Because of needed TLS 1.2 support, Mono >= 4.8, built with TLS 1.2 support, is required. If your distro comes with an older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
 
 ## Installing
+
+### Ubuntu/Debian
+
+Install the [latest](https://github.com/principis/tldr-sharp/releases) Debian package.
+
 ### Linux
 Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```
-wget <linux_install.sh url>
-chmod +x linux_install.sh
-./linux_install.sh
+wget https://github.com/principis/tldr-sharp/releases//latest/download/tldr-sharp_linux_x64.sh
+chmod +x linux_install_x64.sh
+./linux_install_x64.sh
 ```
 
 #### Manual
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 ```
 mkdir tldr
-tar xzf v1.4.0.tar.gz -C tldr
+tar xzf <version>.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
@@ -46,20 +50,19 @@ Simplified and community-driven man pages
                                language
       --list-os              List all OS's
       --list-languages       List all languages
-      --lang=VALUE           Override the default language
+  -L, --language, --lang=VALUE
+                             Specifies the preferred language
   -m, --markdown             Show the markdown source of a page
-  -p, --platform=VALUE       Override the default OS
-  -s, --search=VALUE         Search for a string.
-  -u, --update               Update the local cache.
-      --self-update          Check for tldr-sharp updates.
-  -v, --version              Show version information.
+  -p, --platform=VALUE       Override the default platform
+  -s, --search=VALUE         Search for a string
+  -u, --update               Update the local cache
+      --self-update          Check for tldr-sharp updates
+  -v, --version              Show version information
 ```
 
 ## License
 
-This project is licensed under the GPL license - see the [LICENSE](LICENSE) file for details
+This project is licensed under the GPL license - see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
-This project is the result of a friday night boredom. I only tested it on Ubuntu 18.04 but should be able to run on every platform which supports mono.
-
-Contributions are always welcome!
+Contributions are always welcome! Please open an issue first.
