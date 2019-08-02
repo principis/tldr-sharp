@@ -13,7 +13,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 		zip -r "../tldr-sharp_${TRAVIS_TAG#v}_windows${PLATFORM}.zip" *
 
 		# Linux archives
-		rm $TARGET/Mono.Data.Sqlite.dll || true # not necessary on linux
+		rm Mono.Data.Sqlite.dll || true # not necessary on linux
 		tar czf "../tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.tar.gz" *
 
 		cd ..
@@ -28,7 +28,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
     	tempdir=$(mktemp -d 2>/dev/null || mktemp -d -t tmp)
 
     	mkdir -p "$tempdir/usr/lib/tldr-sharp"
-	    cp $TARGET/* "$tempdir/usr/lib/tldr-sharp"
+	cp $TARGET/* "$tempdir/usr/lib/tldr-sharp"
     	chmod 755 "$tempdir/usr/lib/tldr-sharp/"*
 
     	mkdir -p "$tempdir/usr/bin"
