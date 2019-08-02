@@ -117,9 +117,3 @@ mono tldr_sharp.exe -s giberishdsfsd >/dev/null
 if [ $? == 0 ]; then
     exit 1
 fi
-
-# Test self-update
-mono tldr_sharp.exe --self-update >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi

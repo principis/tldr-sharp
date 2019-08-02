@@ -19,7 +19,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 		cd ..
 
 		# Linux install scripts
-			sed -e "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/" -e "s/FILE_PLACEHOLDER/tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}/" ../../scripts/linux_install.sh > tldr-sharp_linux${PLATFORM}.sh
+			sed -e "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/" -e "s/FILE_PLACEHOLDER/tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}/" ../../scripts/linux_install.sh > tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.sh
     }
 
     build_deb() {
