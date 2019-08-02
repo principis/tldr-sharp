@@ -216,7 +216,7 @@ namespace tldr_sharp
                 conn.Open();
                 using (var command = new SqliteCommand("SELECT DISTINCT lang, platform FROM pages", conn))
                 {
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         var results = new List<(string Language, string Platform)>();
                         while (reader.Read()) results.Add((reader.GetString(0), reader.GetString(1)));
@@ -234,7 +234,7 @@ namespace tldr_sharp
                 conn.Open();
                 using (var command = new SqliteCommand("SELECT DISTINCT platform FROM pages", conn))
                 {
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         SortedSet<string> platform = new SortedSet<string>();
                         while (reader.Read()) platform.Add(reader.GetString(0));
@@ -284,12 +284,12 @@ namespace tldr_sharp
             var languages = ListLanguages();
             if (languages.Contains(Language)) return Language;
 
-            var langs = Environment.GetEnvironmentVariable("LANGUAGE")
+            var prefLanguages = Environment.GetEnvironmentVariable("LANGUAGE")
                 ?.Split(':')
                 .Where(x => !x.Equals(string.Empty));
 
-            if (langs != null) {
-                foreach (var lang in langs)
+            if (prefLanguages != null) {
+                foreach (string lang in prefLanguages)
                 {
                     try
                     {
@@ -316,7 +316,7 @@ namespace tldr_sharp
                 {
                     command.Parameters.Add(new SqliteParameter("@name", page));
 
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         var results = new List<(string Platform, string Language)>();
                         while (reader.Read())
@@ -336,7 +336,7 @@ namespace tldr_sharp
             page = page.TrimStart().Replace(' ', '-');
 
             List<string> languages;
-            var language = prefLanguage;
+            string language = prefLanguage;
             if (language == null)
             {
                 languages = GetPreferredLanguages();
@@ -422,7 +422,7 @@ namespace tldr_sharp
         private static (string Platform, string Language) FindPage(ICollection<(string, string)> results,
             ICollection<string> languages, string platform)
         {
-            foreach (var language in languages)
+            foreach (string language in languages)
             {
                 if (results.Contains((platform, language)))
                 {
@@ -430,7 +430,7 @@ namespace tldr_sharp
                 }
             }
 
-            foreach (var language in languages)
+            foreach (string language in languages)
             {
                 if (results.Contains(("common", language)))
                 {
@@ -445,11 +445,11 @@ namespace tldr_sharp
             ICollection<(string Platform, string Language)> results,
             ICollection<string> languages)
         {
-            foreach (var s in languages)
+            foreach (string language in languages)
             {
                 try
                 {
-                    return results.First(x => x.Language.Equals(s));
+                    return results.First(x => x.Language.Equals(language));
                 }
                 catch (InvalidOperationException)
                 {
@@ -478,7 +478,7 @@ namespace tldr_sharp
                                   " PLATFORM!\x1b[0m\n");
             }
 
-            foreach (var line in File.ReadLines(path))
+            foreach (string line in File.ReadLines(path))
             {
                 if (line.Length == 0) continue;
 
@@ -537,7 +537,7 @@ namespace tldr_sharp
 
             var langPlatforms = GetPlatformPerLanguage();
 
-            foreach (var (lang, platform) in langPlatforms)
+            foreach ((string lang, string platform) in langPlatforms)
             {
                 if (Directory.Exists(Path.Combine(CachePath,
                     "pages" + (lang == DefaultLanguage ? string.Empty : $".{lang}"), platform))) continue;
@@ -552,7 +552,7 @@ namespace tldr_sharp
             using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
             {
                 conn.Open();
-                using (var command = conn.CreateCommand())
+                using (SqliteCommand command = conn.CreateCommand())
                 {
                     if (ignorePlatform)
                         command.CommandText = "SELECT name FROM pages WHERE lang = @lang";
@@ -565,7 +565,7 @@ namespace tldr_sharp
 
                     command.Parameters.Add(new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()));
 
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         var results = new List<string>();
                         while (reader.Read())
@@ -587,7 +587,7 @@ namespace tldr_sharp
                 conn.Open();
                 using (var command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn))
                 {
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         var languages = new List<string>();
                         while (reader.Read()) languages.Add(reader.GetString(0));
@@ -607,14 +607,14 @@ namespace tldr_sharp
             using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
             {
                 conn.Open();
-                using (var command = conn.CreateCommand())
+                using (SqliteCommand command = conn.CreateCommand())
                 {
                     command.CommandText =
                         "SELECT name, lang, platform FROM pages WHERE lang = @lang AND (platform = @platform OR platform = 'common')";
                     command.Parameters.Add(new SqliteParameter("@platform", platform));
                     command.Parameters.Add(new SqliteParameter("@lang", language));
 
-                    using (var reader = command.ExecuteReader())
+                    using (SqliteDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
@@ -626,7 +626,7 @@ namespace tldr_sharp
 
             var results = pages.AsParallel().Select(file =>
             {
-                var (name, lang, p) = file;
+                (string name, string lang, string p) = file;
                 string path = GetPagePath(name, lang, p);
 
                 return File.Exists(path)

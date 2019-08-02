@@ -17,12 +17,12 @@ namespace tldr_sharp
             Directory.CreateDirectory(Program.CachePath);
             var cacheDir = new DirectoryInfo(Program.CachePath);
 
-            foreach (var file in cacheDir.EnumerateFiles())
+            foreach (FileInfo file in cacheDir.EnumerateFiles())
             {
                 file.Delete();
             }
 
-            foreach (var dir in cacheDir.EnumerateDirectories())
+            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories())
             {
                 dir.Delete(true);
             }
@@ -37,7 +37,7 @@ namespace tldr_sharp
             }
 
             using (Stream stream = File.OpenRead(tmpPath))
-            using (var reader = ReaderFactory.Open(stream))
+            using (IReader reader = ReaderFactory.Open(stream))
             {
                 while (reader.MoveToNextEntry())
                 {
@@ -71,7 +71,7 @@ namespace tldr_sharp
                 {
                     command.ExecuteNonQuery();
 
-                    using (var transaction = conn.BeginTransaction())
+                    using (SqliteTransaction transaction = conn.BeginTransaction())
                     {
                         command.Transaction = transaction;
                         command.CommandType = CommandType.Text;
@@ -88,14 +88,14 @@ namespace tldr_sharp
                         command.CommandText =
                             "INSERT INTO pages (name, platform, lang) VALUES(@name, @platform, @lang)";
 
-                        foreach (var dir in cacheDir.EnumerateDirectories("*pages*"))
+                        foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*"))
                         {
                             var lang = "en-US";
                             if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 
-                            foreach (var osDir in dir.EnumerateDirectories())
+                            foreach (DirectoryInfo osDir in dir.EnumerateDirectories())
                             {
-                                foreach (var file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
+                                foreach (FileInfo file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
                                 {
                                     command.Parameters.AddWithValue("@name",
                                         Path.GetFileNameWithoutExtension(file.Name));
@@ -120,12 +120,12 @@ namespace tldr_sharp
             if (Directory.Exists(Program.CachePath))
             {
                 var cacheDir = new DirectoryInfo(Program.CachePath);
-                foreach (var file in cacheDir.EnumerateFiles())
+                foreach (FileInfo file in cacheDir.EnumerateFiles())
                 {
                     file.Delete();
                 }
 
-                foreach (var dir in cacheDir.EnumerateDirectories())
+                foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories())
                 {
                     dir.Delete(true);
                 }
