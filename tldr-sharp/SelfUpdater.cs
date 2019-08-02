@@ -18,7 +18,7 @@ namespace tldr_sharp
                     "Mozilla/4.0 (compatible; MSIE 6.0; " + "Windows NT 5.2; .NET CLR 1.0.3705;)");
                 var json = client.DownloadString(
                     Program.SelfApiUrl);
-                var remoteVersion = new Version(json.Substring(json.IndexOf("tag_name") + 12, 5));
+                var remoteVersion = new Version(json.Substring(json.IndexOf("tag_name", StringComparison.Ordinal) + 12, 5));
 
                 if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0)
                 {
@@ -28,7 +28,7 @@ namespace tldr_sharp
                         do
                         {
                             Console.Write("Version {0} is available. Do you want to update? [N/y]: ", remoteVersion);
-                            response = Console.ReadKey(false).Key; // true is intercept key (dont show), false is show
+                            response = Console.ReadKey(false).Key;
                             if (response != ConsoleKey.Enter)
                                 Console.WriteLine();
                         } while (response != ConsoleKey.Y && response != ConsoleKey.N && response != ConsoleKey.Enter);
