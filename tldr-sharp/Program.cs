@@ -14,9 +14,6 @@ namespace tldr_sharp
     {
         private const string ClientSpecVersion = "1.2";
 
-        internal const string SelfApiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest";
-        internal const string SelfUpdateUrl = "https://github.com/principis/tldr-sharp/releases/latest";
-        internal const string PagesUrl = "https://tldr.sh/assets/tldr.zip";
         private const string DefaultLanguage = "en-US";
 
         internal static readonly string CachePath =
@@ -120,7 +117,7 @@ namespace tldr_sharp
                     }
                 },
                 {
-                    "v|version", "Show version information.",
+                    "v|version", "Show version information",
                     v =>
                     {
                         Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major +

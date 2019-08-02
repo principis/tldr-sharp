@@ -10,22 +10,31 @@ namespace tldr_sharp
 {
     internal static class Updater
     {
+        private const string PagesUrl = "https://tldr.sh/assets/tldr.zip";
+
         internal static void Update()
         {
             Console.WriteLine("Updating cache...");
 
-            Directory.CreateDirectory(Program.CachePath);
-            var cacheDir = new DirectoryInfo(Program.CachePath);
-
-            foreach (FileInfo file in cacheDir.EnumerateFiles())
+            DirectoryInfo cacheDir;
+            try
             {
-                file.Delete();
+                if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
+
+                cacheDir = new DirectoryInfo(Program.CachePath);
+                if (cacheDir.Exists)
+                {
+                    cacheDir.Delete(true);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[ERROR] {0}", e.Message);
+                Environment.Exit(1);
+                return;
             }
 
-            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories())
-            {
-                dir.Delete(true);
-            }
+            cacheDir.Create();
 
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
@@ -33,7 +42,7 @@ namespace tldr_sharp
 
             using (var client = new WebClient())
             {
-                client.DownloadFile(Program.PagesUrl, tmpPath);
+                client.DownloadFile(PagesUrl, tmpPath);
             }
 
             using (Stream stream = File.OpenRead(tmpPath))
