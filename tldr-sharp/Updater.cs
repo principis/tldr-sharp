@@ -16,42 +16,27 @@ namespace tldr_sharp
         {
             Console.WriteLine("Updating cache...");
 
-            DirectoryInfo cacheDir;
-            try
-            {
-                if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
-
-                cacheDir = new DirectoryInfo(Program.CachePath);
-                if (cacheDir.Exists)
-                {
-                    cacheDir.Delete(true);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[ERROR] {0}", e.Message);
-                Environment.Exit(1);
-                return;
-            }
-
-            cacheDir.Create();
+            ClearCache(false);
 
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
             if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
 
-            using (var client = new WebClient())
-            {
-                client.DownloadFile(PagesUrl, tmpPath);
+            using (var client = new WebClient()) {
+                try {
+                    client.DownloadFile(PagesUrl, tmpPath);
+                } catch (WebException e) {
+                    Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
+                    Console.WriteLine($"{e.Message}");
+                    Environment.Exit(1);
+                    return;
+                }
             }
 
             using (Stream stream = File.OpenRead(tmpPath))
-            using (IReader reader = ReaderFactory.Open(stream))
-            {
-                while (reader.MoveToNextEntry())
-                {
-                    if (!reader.Entry.IsDirectory)
-                    {
+            using (IReader reader = ReaderFactory.Open(stream)) {
+                while (reader.MoveToNextEntry()) {
+                    if (!reader.Entry.IsDirectory) {
                         reader.WriteEntryToDirectory(Program.CachePath, new ExtractionOptions
                         {
                             ExtractFullPath = true,
@@ -72,16 +57,13 @@ namespace tldr_sharp
 
             SqliteConnection.CreateFile(Program.DbPath);
 
-            using (var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";")) {
                 conn.Open();
                 using (var command = new SqliteCommand(
-                    "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7))", conn))
-                {
+                    "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7))", conn)) {
                     command.ExecuteNonQuery();
 
-                    using (SqliteTransaction transaction = conn.BeginTransaction())
-                    {
+                    using (SqliteTransaction transaction = conn.BeginTransaction()) {
                         command.Transaction = transaction;
                         command.CommandType = CommandType.Text;
 
@@ -97,15 +79,12 @@ namespace tldr_sharp
                         command.CommandText =
                             "INSERT INTO pages (name, platform, lang) VALUES(@name, @platform, @lang)";
 
-                        foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*"))
-                        {
+                        foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
                             var lang = "en-US";
                             if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 
-                            foreach (DirectoryInfo osDir in dir.EnumerateDirectories())
-                            {
-                                foreach (FileInfo file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories))
-                                {
+                            foreach (DirectoryInfo osDir in dir.EnumerateDirectories()) {
+                                foreach (FileInfo file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories)) {
                                     command.Parameters.AddWithValue("@name",
                                         Path.GetFileNameWithoutExtension(file.Name));
                                     command.Parameters.AddWithValue("@platform", osDir.Name);
@@ -123,24 +102,27 @@ namespace tldr_sharp
             Console.WriteLine("Cache updated.");
         }
 
-        internal static void ClearCache()
+        internal static void ClearCache(bool message = true)
         {
-            Console.WriteLine("Clearing cache...");
-            if (Directory.Exists(Program.CachePath))
-            {
-                var cacheDir = new DirectoryInfo(Program.CachePath);
-                foreach (FileInfo file in cacheDir.EnumerateFiles())
-                {
-                    file.Delete();
-                }
+            if (message) Console.WriteLine("Clearing cache...");
 
-                foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories())
-                {
-                    dir.Delete(true);
+            DirectoryInfo cacheDir;
+            try {
+                if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
+
+                cacheDir = new DirectoryInfo(Program.CachePath);
+                if (cacheDir.Exists) {
+                    cacheDir.Delete(true);
                 }
+            } catch (Exception e) {
+                Console.WriteLine("[ERROR] {0}", e.Message);
+                Environment.Exit(1);
+                return;
             }
 
-            Console.WriteLine("Cache cleared.");
+            cacheDir.Create();
+
+            if (message) Console.WriteLine("Cache cleared.");
         }
     }
 }

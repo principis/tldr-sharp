@@ -19,8 +19,19 @@ namespace tldr_sharp
             {
                 client.Headers.Add("user-agent",
                     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
-                string json = client.DownloadString(
-                    ApiUrl);
+                string json;
+                try
+                {
+                    json = client.DownloadString(ApiUrl);
+                }
+                catch (WebException e)
+                {
+                    Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
+                    Console.WriteLine($"[ERROR] {e.Message}");
+                    Environment.Exit(1);
+                    return;
+                }
+
                 var remoteVersion =
                     new Version(json.Substring(json.IndexOf("tag_name", StringComparison.Ordinal) + 12, 5));
 
@@ -103,7 +114,17 @@ namespace tldr_sharp
 
             using (var client = new WebClient())
             {
-                client.DownloadFile(url, tmpPath);
+                try
+                {
+                    client.DownloadFile(url, tmpPath);
+                }
+                catch (WebException e)
+                {
+                    Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
+                    Console.WriteLine($"{e.Message}");
+                    Environment.Exit(1);
+                    return;
+                }
             }
 
             var startInfo = new ProcessStartInfo()
@@ -148,7 +169,7 @@ namespace tldr_sharp
         private static string GetUpdateUrl(UpdateType type, Version version)
         {
             string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/" +
-                $"tldr-sharp_{version.Major}.{version.Minor}.{version.Build}";
+                                 $"tldr-sharp_{version.Major}.{version.Minor}.{version.Build}";
             switch (type)
             {
                 case UpdateType.Debian:
