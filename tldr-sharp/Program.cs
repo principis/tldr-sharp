@@ -285,7 +285,8 @@ namespace tldr_sharp
                 ?.Split(':')
                 .Where(x => !x.Equals(string.Empty));
 
-            if (prefLanguages != null) {
+            if (prefLanguages != null)
+            {
                 foreach (string lang in prefLanguages)
                 {
                     try
@@ -307,9 +308,7 @@ namespace tldr_sharp
             {
                 conn.Open();
 
-                using (var command =
-                    new SqliteCommand("SELECT platform, lang FROM pages WHERE name = @name ORDER BY platform DESC",
-                        conn))
+                using (var command = new SqliteCommand("SELECT platform, lang FROM pages WHERE name = @name ORDER BY platform DESC", conn))
                 {
                     command.Parameters.Add(new SqliteParameter("@name", page));
 
@@ -362,6 +361,9 @@ namespace tldr_sharp
 
                 if (results.Count == 0) return PageNotFound(page);
             }
+            
+            results = results.OrderBy(item => item,
+                new PageComparer(new [] {platform, "common"}, languages)).ToList();
 
             try
             {
@@ -388,6 +390,8 @@ namespace tldr_sharp
             if (!File.Exists(path))
             {
                 Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
+                Updater.Update();
+
                 return 1;
             }
 
@@ -536,8 +540,8 @@ namespace tldr_sharp
 
             foreach ((string lang, string platform) in langPlatforms)
             {
-                if (Directory.Exists(Path.Combine(CachePath,
-                    "pages" + (lang == DefaultLanguage ? string.Empty : $".{lang}"), platform))) continue;
+                if (Directory.Exists(Path.Combine(
+                    CachePath, "pages" + (lang == DefaultLanguage ? string.Empty : $".{lang}"), platform))) continue;
                 Console.WriteLine("Cache corrupted. ");
                 Updater.Update();
                 return;
@@ -634,9 +638,9 @@ namespace tldr_sharp
             if (results.Count == 0) return 1;
 
             results.Sort((x, y) => string.Compare(x.Item1, y.Item1, StringComparison.Ordinal));
-            foreach (var (page, matches) in results)
+            foreach ((string page, var matches) in results)
             {
-                foreach (var line in matches)
+                foreach (string line in matches)
                 {
                     Console.WriteLine("\x1b[35m{0}\x1b[39m:\t{1}", page,
                         ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
@@ -644,6 +648,35 @@ namespace tldr_sharp
             }
 
             return 0;
+        }
+    }
+
+    public class PageComparer : IComparer<(string Platform, string Language)>
+    {
+        private readonly string[] _languages;
+        private readonly string[] _platforms;
+
+        public PageComparer(IEnumerable<string> platforms, IEnumerable<string> languages)
+        {
+            _languages = languages.ToArray();
+            _platforms = platforms.ToArray();
+        }
+
+        public int Compare((string Platform, string Language) x, (string Platform, string Language) y)
+        {
+            int xIndex = Array.IndexOf(_languages, x.Language);
+            int yIndex = Array.IndexOf(_languages, y.Language);
+
+            if (xIndex == yIndex)    
+            {
+                xIndex = Array.IndexOf(_platforms, x.Platform);
+                yIndex = Array.IndexOf(_platforms, y.Platform);
+            }
+
+            if (xIndex == yIndex) return 0;
+            if (xIndex == -1) return 1;
+            if (yIndex == -1) return -1;
+            return xIndex - yIndex;
         }
     }
 }
