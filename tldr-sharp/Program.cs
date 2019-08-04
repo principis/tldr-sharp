@@ -63,26 +63,20 @@ namespace tldr_sharp
                 },
                 {
                     "list-os", "List all OS's",
-                    o =>
-                    {
+                    o => {
                         CheckCache();
                         Console.WriteLine(string.Join("\n", ListPlatform()));
                     }
                 },
                 {
                     "list-languages", "List all languages",
-                    la =>
-                    {
+                    la => {
                         CheckCache();
                         Console.WriteLine(string.Join("\n",
-                            ListLanguages().Select(x =>
-                            {
-                                try
-                                {
+                            ListLanguages().Select(x => {
+                                try {
                                     return x + ": " + CultureInfo.GetCultureInfo(x).EnglishName;
-                                }
-                                catch (CultureNotFoundException)
-                                {
+                                } catch (CultureNotFoundException) {
                                     return null;
                                 }
                             }).Where(x => x != null)));
@@ -110,16 +104,14 @@ namespace tldr_sharp
                 },
                 {
                     "self-update", "Check for tldr-sharp updates",
-                    u =>
-                    {
+                    u => {
                         SelfUpdater.CheckSelfUpdate();
                         Environment.Exit(0);
                     }
                 },
                 {
                     "v|version", "Show version information",
-                    v =>
-                    {
+                    v => {
                         Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major +
                                           "." +
                                           Assembly.GetExecutingAssembly().GetName().Version.Minor + "." +
@@ -131,54 +123,43 @@ namespace tldr_sharp
             };
 
             List<string> extra;
-            try
-            {
+            try {
                 extra = options.Parse(args);
-            }
-            catch (OptionException e)
-            {
+            } catch (OptionException e) {
                 Console.WriteLine(e.Message);
                 return 1;
             }
 
-            if (showHelp || args.Length == 0)
-            {
+            if (showHelp || args.Length == 0) {
                 options.WriteOptionDescriptions(Console.Out);
                 return args.Length == 0 ? 1 : 0;
             }
 
-            if (render != null)
-            {
+            if (render != null) {
                 return Render(render);
             }
 
             CheckCache();
 
-            if (language != null)
-            {
-                if (!CheckLanguage(language))
-                {
+            if (language != null) {
+                if (!CheckLanguage(language)) {
                     Console.WriteLine("[ERROR] unknown language '{0}'", language);
                     return 1;
                 }
             }
 
-            if (list)
-            {
+            if (list) {
                 ListAll(ignorePlatform, language, platform);
                 return 0;
             }
 
-            if (search != null)
-            {
+            if (search != null) {
                 return Search(search, language, platform);
             }
 
             string page = string.Empty;
-            foreach (string arg in extra)
-            {
-                if (arg.StartsWith("-"))
-                {
+            foreach (string arg in extra) {
+                if (arg.StartsWith("-")) {
                     if (page == string.Empty) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
                     return 1;
                 }
@@ -191,8 +172,7 @@ namespace tldr_sharp
 
         private static string GetPlatform()
         {
-            switch (Environment.OSVersion.Platform)
-            {
+            switch (Environment.OSVersion.Platform) {
                 case PlatformID.MacOSX:
                     return "osx";
                 case PlatformID.Unix:
@@ -208,13 +188,10 @@ namespace tldr_sharp
 
         private static ICollection<(string Language, string Platform)> GetPlatformPerLanguage()
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (var command = new SqliteCommand("SELECT DISTINCT lang, platform FROM pages", conn))
-                {
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
+                using (var command = new SqliteCommand("SELECT DISTINCT lang, platform FROM pages", conn)) {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         var results = new List<(string Language, string Platform)>();
                         while (reader.Read()) results.Add((reader.GetString(0), reader.GetString(1)));
 
@@ -226,13 +203,10 @@ namespace tldr_sharp
 
         private static IEnumerable<string> ListPlatform()
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (var command = new SqliteCommand("SELECT DISTINCT platform FROM pages", conn))
-                {
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
+                using (var command = new SqliteCommand("SELECT DISTINCT platform FROM pages", conn)) {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         SortedSet<string> platform = new SortedSet<string>();
                         while (reader.Read()) platform.Add(reader.GetString(0));
 
@@ -244,15 +218,12 @@ namespace tldr_sharp
 
         private static bool CheckLanguage(string language)
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (var command = new SqliteCommand("SELECT 1 FROM pages WHERE lang = @language", conn))
-                {
+                using (var command = new SqliteCommand("SELECT 1 FROM pages WHERE lang = @language", conn)) {
                     command.Parameters.Add(new SqliteParameter("@language", language));
 
-                    using (var reader = command.ExecuteReader())
-                    {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         return reader.HasRows;
                     }
                 }
@@ -268,8 +239,7 @@ namespace tldr_sharp
             Environment.GetEnvironmentVariable("LANGUAGE")
                 ?.Split(':')
                 .Where(x => !x.Equals(string.Empty))
-                .ToList().ForEach(delegate(string s)
-                {
+                .ToList().ForEach(delegate(string s) {
                     valid.AddRange(languages.Where(l => l.Substring(0, 2).Equals(s)));
                 });
 
@@ -285,17 +255,11 @@ namespace tldr_sharp
                 ?.Split(':')
                 .Where(x => !x.Equals(string.Empty));
 
-            if (prefLanguages != null)
-            {
-                foreach (string lang in prefLanguages)
-                {
-                    try
-                    {
+            if (prefLanguages != null) {
+                foreach (string lang in prefLanguages) {
+                    try {
                         return languages.First(x => x.Substring(0, 2).Equals(lang));
-                    }
-                    catch (InvalidOperationException)
-                    {
-                    }
+                    } catch (InvalidOperationException) { }
                 }
             }
 
@@ -304,19 +268,17 @@ namespace tldr_sharp
 
         private static List<(string, string)> QueryPage(string page)
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
 
-                using (var command = new SqliteCommand("SELECT platform, lang FROM pages WHERE name = @name ORDER BY platform DESC", conn))
-                {
+                using (var command =
+                    new SqliteCommand("SELECT platform, lang FROM pages WHERE name = @name ORDER BY platform DESC",
+                        conn)) {
                     command.Parameters.Add(new SqliteParameter("@name", page));
 
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         var results = new List<(string Platform, string Language)>();
-                        while (reader.Read())
-                        {
+                        while (reader.Read()) {
                             results.Add((reader.GetString(0), reader.GetString(1)));
                         }
 
@@ -333,18 +295,14 @@ namespace tldr_sharp
 
             List<string> languages;
             string language = prefLanguage;
-            if (language == null)
-            {
+            if (language == null) {
                 languages = GetPreferredLanguages();
-                if (languages.Count == 0)
-                {
+                if (languages.Count == 0) {
                     Console.WriteLine("[INFO] None of the preferred languages found, using {0} instead.",
                         DefaultLanguage);
                     languages.Add(DefaultLanguage);
                 }
-            }
-            else
-            {
+            } else {
                 languages = new List<string> {language};
             }
 
@@ -353,42 +311,34 @@ namespace tldr_sharp
 
             var results = QueryPage(page);
 
-            if (results.Count == 0)
-            {
+            if (results.Count == 0) {
                 Console.Write("Page not found. ");
                 Updater.Update();
                 results = QueryPage(page);
 
                 if (results.Count == 0) return PageNotFound(page);
             }
-            
-            results = results.OrderBy(item => item,
-                new PageComparer(new [] {platform, "common"}, languages)).ToList();
 
-            try
-            {
+            results = results.OrderBy(item => item,
+                new PageComparer(new[] {platform, "common"}, languages)).ToList();
+
+            try {
                 (platform, language) = FindPage(results, languages, platform);
-            }
-            catch (Exception)
-            {
-                try
-                {
+            } catch (Exception) {
+                try {
                     string tmpPlatform;
                     (tmpPlatform, language) = FindAlternativePage(results, languages);
                     altPlatform = tmpPlatform;
                     if (platform == tmpPlatform || tmpPlatform == "common") altPlatform = null;
                     platform = tmpPlatform;
-                }
-                catch (Exception)
-                {
+                } catch (Exception) {
                     return PageNotFound(page);
                 }
             }
 
             string path = GetPagePath(page, language, platform);
 
-            if (!File.Exists(path))
-            {
+            if (!File.Exists(path)) {
                 Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
                 Updater.Update();
 
@@ -397,8 +347,7 @@ namespace tldr_sharp
 
             if (markdown)
                 Console.WriteLine(File.ReadAllText(path));
-            else
-            {
+            else {
                 return Render(path, altPlatform);
             }
 
@@ -423,18 +372,14 @@ namespace tldr_sharp
         private static (string Platform, string Language) FindPage(ICollection<(string, string)> results,
             ICollection<string> languages, string platform)
         {
-            foreach (string language in languages)
-            {
-                if (results.Contains((platform, language)))
-                {
+            foreach (string language in languages) {
+                if (results.Contains((platform, language))) {
                     return (platform, language);
                 }
             }
 
-            foreach (string language in languages)
-            {
-                if (results.Contains(("common", language)))
-                {
+            foreach (string language in languages) {
+                if (results.Contains(("common", language))) {
                     return ("common", language);
                 }
             }
@@ -446,19 +391,13 @@ namespace tldr_sharp
             ICollection<(string Platform, string Language)> results,
             ICollection<string> languages)
         {
-            foreach (string language in languages)
-            {
-                try
-                {
+            foreach (string language in languages) {
+                try {
                     return results.First(x => x.Language.Equals(language));
-                }
-                catch (InvalidOperationException)
-                {
-                }
+                } catch (InvalidOperationException) { }
             }
 
-            if (!languages.Contains(DefaultLanguage))
-            {
+            if (!languages.Contains(DefaultLanguage)) {
                 return results.First(x => x.Language.Equals(DefaultLanguage));
             }
 
@@ -467,20 +406,17 @@ namespace tldr_sharp
 
         private static int Render(string path, string diffPlatform = null)
         {
-            if (!File.Exists(path))
-            {
+            if (!File.Exists(path)) {
                 Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
                 return 1;
             }
 
-            if (diffPlatform != null)
-            {
+            if (diffPlatform != null) {
                 Console.WriteLine("\x1B[31m\x1b[1m[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
                                   " PLATFORM!\x1b[0m\n");
             }
 
-            foreach (string line in File.ReadLines(path))
-            {
+            foreach (string line in File.ReadLines(path)) {
                 if (line.Length == 0) continue;
 
                 Console.WriteLine(ParseLine(line, true));
@@ -491,25 +427,21 @@ namespace tldr_sharp
 
         private static string ParseLine(string line, bool formatted = false)
         {
-            if (line.Contains("{{"))
-            {
+            if (line.Contains("{{")) {
                 line = line.Replace("{{", "\x1b[32m").Replace("}}", "\x1b[31m");
             }
 
             int urlStart = line.IndexOf("<", StringComparison.Ordinal);
-            if (urlStart != -1)
-            {
+            if (urlStart != -1) {
                 int urlEnd = line.Substring(urlStart).IndexOf(">", StringComparison.Ordinal);
-                if (urlEnd != -1)
-                {
+                if (urlEnd != -1) {
                     line = line.Substring(0, urlStart) + "\x1b[21m\x1b[4m" +
                            line.Substring(urlStart + 1, urlEnd - 1) + "\x1b[0m" +
                            line.Substring(urlStart + urlEnd + 1);
                 }
             }
 
-            switch (line[0])
-            {
+            switch (line[0]) {
                 case '#':
                     line = "\x1B[4m\x1b[1m" + line.Substring(2) + "\x1b[0m" + (formatted ? "\n" : "");
                     break;
@@ -529,8 +461,7 @@ namespace tldr_sharp
 
         private static void CheckCache()
         {
-            if (!File.Exists(DbPath))
-            {
+            if (!File.Exists(DbPath)) {
                 Console.WriteLine("Database not found. ");
                 Updater.Update();
                 return;
@@ -538,8 +469,7 @@ namespace tldr_sharp
 
             var langPlatforms = GetPlatformPerLanguage();
 
-            foreach ((string lang, string platform) in langPlatforms)
-            {
+            foreach ((string lang, string platform) in langPlatforms) {
                 if (Directory.Exists(Path.Combine(
                     CachePath, "pages" + (lang == DefaultLanguage ? string.Empty : $".{lang}"), platform))) continue;
                 Console.WriteLine("Cache corrupted. ");
@@ -550,15 +480,12 @@ namespace tldr_sharp
 
         private static void ListAll(bool ignorePlatform, string language = null, string platform = null)
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (SqliteCommand command = conn.CreateCommand())
-                {
+                using (SqliteCommand command = conn.CreateCommand()) {
                     if (ignorePlatform)
                         command.CommandText = "SELECT name FROM pages WHERE lang = @lang";
-                    else
-                    {
+                    else {
                         command.CommandText =
                             "SELECT name FROM pages WHERE lang = @lang AND (platform = @platform OR platform = 'common')";
                         command.Parameters.Add(new SqliteParameter("@platform", platform ?? GetPlatform()));
@@ -566,11 +493,9 @@ namespace tldr_sharp
 
                     command.Parameters.Add(new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()));
 
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         var results = new List<string>();
-                        while (reader.Read())
-                        {
+                        while (reader.Read()) {
                             results.Add(reader.GetString(0));
                         }
 
@@ -583,13 +508,10 @@ namespace tldr_sharp
 
         private static ICollection<string> ListLanguages()
         {
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (var command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn))
-                {
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
+                using (var command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn)) {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
                         var languages = new List<string>();
                         while (reader.Read()) languages.Add(reader.GetString(0));
 
@@ -605,28 +527,23 @@ namespace tldr_sharp
             language = language ?? GetPreferredLanguageOrDefault();
             platform = platform ?? GetPlatform();
 
-            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";"))
-            {
+            using (var conn = new SqliteConnection("Data Source=" + DbPath + ";")) {
                 conn.Open();
-                using (SqliteCommand command = conn.CreateCommand())
-                {
+                using (SqliteCommand command = conn.CreateCommand()) {
                     command.CommandText =
                         "SELECT name, lang, platform FROM pages WHERE lang = @lang AND (platform = @platform OR platform = 'common')";
                     command.Parameters.Add(new SqliteParameter("@platform", platform));
                     command.Parameters.Add(new SqliteParameter("@lang", language));
 
-                    using (SqliteDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
+                    using (SqliteDataReader reader = command.ExecuteReader()) {
+                        while (reader.Read()) {
                             pages.Add((reader.GetString(0), reader.GetString(1), reader.GetString(2)));
                         }
                     }
                 }
             }
 
-            var results = pages.AsParallel().Select(file =>
-            {
+            var results = pages.AsParallel().Select(file => {
                 (string name, string lang, string p) = file;
                 string path = GetPagePath(name, lang, p);
 
@@ -638,10 +555,8 @@ namespace tldr_sharp
             if (results.Count == 0) return 1;
 
             results.Sort((x, y) => string.Compare(x.Item1, y.Item1, StringComparison.Ordinal));
-            foreach ((string page, var matches) in results)
-            {
-                foreach (string line in matches)
-                {
+            foreach ((string page, var matches) in results) {
+                foreach (string line in matches) {
                     Console.WriteLine("\x1b[35m{0}\x1b[39m:\t{1}", page,
                         ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
                 }
@@ -667,8 +582,7 @@ namespace tldr_sharp
             int xIndex = Array.IndexOf(_languages, x.Language);
             int yIndex = Array.IndexOf(_languages, y.Language);
 
-            if (xIndex == yIndex)    
-            {
+            if (xIndex == yIndex) {
                 xIndex = Array.IndexOf(_platforms, x.Platform);
                 yIndex = Array.IndexOf(_platforms, y.Platform);
             }

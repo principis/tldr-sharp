@@ -111,6 +111,7 @@ namespace tldr_sharp
                 if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
 
                 cacheDir = new DirectoryInfo(Program.CachePath);
+                
                 if (cacheDir.Exists) {
                     cacheDir.Delete(true);
                 }

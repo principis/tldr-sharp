@@ -15,33 +15,29 @@ namespace tldr_sharp
 
         internal static void CheckSelfUpdate()
         {
-            using (var client = new WebClient())
-            {
+            using (var client = new WebClient()) {
                 client.Headers.Add("user-agent",
                     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+
                 string json;
-                try
-                {
+
+                try {
                     json = client.DownloadString(ApiUrl);
-                }
-                catch (WebException e)
-                {
+                } catch (WebException e) {
                     Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
                     Console.WriteLine($"[ERROR] {e.Message}");
+
                     Environment.Exit(1);
                     return;
                 }
 
-                var remoteVersion =
-                    new Version(json.Substring(json.IndexOf("tag_name", StringComparison.Ordinal) + 12, 5));
+                var remoteVersion = new Version(json.Substring(
+                    json.IndexOf("tag_name", StringComparison.Ordinal) + 12, 5));
 
-                if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0)
-                {
-                    if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    {
+                if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) > 0) {
+                    if (Environment.OSVersion.Platform == PlatformID.Unix) {
                         ConsoleKey response;
-                        do
-                        {
+                        do {
                             Console.Write("Version {0} is available. Do you want to update? [N/y]: ", remoteVersion);
                             response = Console.ReadKey(false).Key;
                             if (response != ConsoleKey.Enter)
@@ -57,16 +53,14 @@ namespace tldr_sharp
                         Console.WriteLine("3\tx64 install script (.sh)");
                         string option;
                         int optionNb;
-                        do
-                        {
+                        do {
                             Console.Write("Enter number 0..3: ");
                             option = Console.ReadLine();
                         } while (!int.TryParse(option, out optionNb) || optionNb > 3 || optionNb < 0);
 
                         Console.WriteLine();
 
-                        switch (optionNb)
-                        {
+                        switch (optionNb) {
                             case 0:
                                 SelfUpdate(UpdateType.Debian, remoteVersion);
                                 break;
@@ -80,15 +74,10 @@ namespace tldr_sharp
                                 SelfUpdate(UpdateType.ScriptX64, remoteVersion);
                                 break;
                         }
+                    } else {
+                        Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion, UpdateUrl);
                     }
-                    else
-                    {
-                        Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion,
-                            UpdateUrl);
-                    }
-                }
-                else
-                {
+                } else {
                     Console.WriteLine("tldr-sharp is up to date!");
                 }
             }
@@ -98,28 +87,22 @@ namespace tldr_sharp
         {
             Console.WriteLine("[INFO] Updating tldr-sharp to v" + version);
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
 
             string url;
-            try
-            {
+            try {
                 url = GetUpdateUrl(type, version);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Console.WriteLine("[ERROR] {0}", e.Message);
                 Environment.Exit(1);
                 return;
             }
 
-            using (var client = new WebClient())
-            {
-                try
-                {
+            using (var client = new WebClient()) {
+                try {
                     client.DownloadFile(url, tmpPath);
-                }
-                catch (WebException e)
-                {
+                } catch (WebException e) {
                     Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
                     Console.WriteLine($"{e.Message}");
                     Environment.Exit(1);
@@ -130,8 +113,7 @@ namespace tldr_sharp
             var startInfo = new ProcessStartInfo()
                 {FileName = "/bin/bash", UseShellExecute = false, RedirectStandardOutput = true};
 
-            switch (type)
-            {
+            switch (type) {
                 case UpdateType.Debian:
                 case UpdateType.DebianX64:
                     startInfo.Arguments = "-c \"sudo dpkg -i " + tmpPath + "\"";
@@ -142,19 +124,16 @@ namespace tldr_sharp
                     break;
             }
 
-            using (var process = new Process() {StartInfo = startInfo,})
-            {
+            using (var process = new Process() {StartInfo = startInfo,}) {
                 process.Start();
                 Console.WriteLine(process.StandardOutput.ReadToEnd());
-                while (!process.HasExited)
-                {
+                while (!process.HasExited) {
                     Thread.Sleep(100);
                 }
 
                 File.Delete(tmpPath);
 
-                if (process.ExitCode != 0)
-                {
+                if (process.ExitCode != 0) {
                     Console.WriteLine(
                         "[ERROR] Oops! Something went wrong!\nHelp us improve your experience by sending an error report.");
                     Environment.Exit(1);
@@ -170,8 +149,7 @@ namespace tldr_sharp
         {
             string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/" +
                                  $"tldr-sharp_{version.Major}.{version.Minor}.{version.Build}";
-            switch (type)
-            {
+            switch (type) {
                 case UpdateType.Debian:
                     return $"{downloadUrl}.deb";
                 case UpdateType.DebianX64:
