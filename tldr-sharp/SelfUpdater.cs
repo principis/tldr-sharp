@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace tldr_sharp
@@ -16,16 +15,14 @@ namespace tldr_sharp
         internal static void CheckSelfUpdate()
         {
             using (var client = new WebClient()) {
-                client.Headers.Add("user-agent",
-                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                client.Headers.Add("user-agent", Program.UserAgent);
 
                 string json;
 
                 try {
                     json = client.DownloadString(ApiUrl);
                 } catch (WebException e) {
-                    Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
-                    Console.WriteLine($"[ERROR] {e.Message}");
+                    Console.WriteLine($"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
 
                     Environment.Exit(1);
                     return;
@@ -103,8 +100,7 @@ namespace tldr_sharp
                 try {
                     client.DownloadFile(url, tmpPath);
                 } catch (WebException e) {
-                    Console.Write("[ERROR] Please make sure you have a functioning internet connection. ");
-                    Console.WriteLine($"{e.Message}");
+                    Console.WriteLine($"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
                     Environment.Exit(1);
                     return;
                 }
@@ -122,6 +118,8 @@ namespace tldr_sharp
                 case UpdateType.ScriptX64:
                     startInfo.Arguments = "-c \"bash " + tmpPath + "\"";
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
 
             using (var process = new Process() {StartInfo = startInfo,}) {
@@ -139,7 +137,10 @@ namespace tldr_sharp
                     Environment.Exit(1);
                 }
 
-                Updater.ClearCache();
+                Console.WriteLine("Clearing cache...");
+                Cache.Clear();
+                Console.WriteLine("Cache cleared.");
+                
                 Console.WriteLine("[INFO] Done!" + version);
                 Environment.Exit(0);
             }
