@@ -125,7 +125,7 @@ namespace tldr_sharp
                     var preferredLanguages = Index.GetEnvLanguages();
 
                     foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
-                        string lang = "en-US";
+                        string lang = "en_US";
                         bool isLocal = true;
                         if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 

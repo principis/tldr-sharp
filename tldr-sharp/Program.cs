@@ -15,7 +15,7 @@ namespace tldr_sharp
     internal static class Program
     {
         private const string ClientSpecVersion = "1.2";
-        internal const string DefaultLanguage = "en-US";
+        internal const string DefaultLanguage = "en_US";
 
         internal static readonly string Language = CultureInfo.CurrentCulture.Name;
 
@@ -29,6 +29,7 @@ namespace tldr_sharp
 
         public static int Main(string[] args)
         {
+            
             bool showHelp = false;
 
             bool list = false;
@@ -50,7 +51,7 @@ namespace tldr_sharp
                     a => list = ignorePlatform = a != null
                 },
                 {
-                    "c|clear-cache", "Clear the local cache",
+                    "c|clear-cache", "Clear the cache",
                     c => {
                         Console.WriteLine("Clearing cache...");
                         Cache.Clear();
@@ -71,7 +72,7 @@ namespace tldr_sharp
                     l => list = l != null
                 },
                 {
-                    "list-os", "List all OS's",
+                    "list-os", "List all platforms",
                     o => {
                         Cache.Check();
                         Console.WriteLine(string.Join("\n", Index.ListPlatform()));
@@ -84,7 +85,7 @@ namespace tldr_sharp
                         Console.WriteLine(string.Join("\n",
                             ListLanguages().Select(x => {
                                 try {
-                                    return x + ": " + CultureInfo.GetCultureInfo(x).EnglishName;
+                                    return x + ": " + CultureInfo.GetCultureInfo(x.Replace('_', '-')).EnglishName;
                                 } catch (CultureNotFoundException) {
                                     return null;
                                 }
@@ -108,7 +109,7 @@ namespace tldr_sharp
                     s => search = s
                 },
                 {
-                    "u|update", "Update the local cache",
+                    "u|update", "Update the cache",
                     u => Updater.Update()
                 },
                 {
