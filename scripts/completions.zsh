@@ -16,8 +16,8 @@ _arguments \
   '(- *)'{-L,--language}'[Specifies the preferred language]:lang:(${languages})' \
   '(- *)'{-m,--markdown}'[Show the markdown source of a page]' \
   '(- *)'{-p,--platform}'[Override the default OS]:os:(${oses})' \
-  '(- *)'{-s,--search}'[Search for a string]'\
+  '(- *)'{-s,--search}'[Search for a string]' \
   '(- *)'{-u,--update}'[Update the cache]' \
-  '--self-update[Check for tldr-sharp updates]'
-  '(- *)'{-v,--version}'[Show version information]'\
+  '--self-update[Check for tldr-sharp updates]' \
+  '(- *)'{-v,--version}'[Show version information]' \
   "*:page:(${pages})" && return 0
