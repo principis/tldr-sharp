@@ -2,8 +2,8 @@
 
 function _tldr_completions() 
 {
-        pages=$(tldr -l -1)
-        commands='-h --help -l --list -a --list-all -u --update -c --clear-cache --os= --list-os \
+        pages=$(tldr -a)
+        commands='-h --help -a --list-all -c --clear-cache -f --render -l --list --list-os --list-languages -L --language -m --markdown -p --platform -s --search -u --update --self-update -v --version \
                 --lang= --list-languages'
         COMPREPLY=()
 
