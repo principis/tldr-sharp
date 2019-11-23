@@ -141,7 +141,8 @@ namespace tldr_sharp
                 Cache.Clear();
                 Console.WriteLine("Cache cleared.");
                 
-                Console.WriteLine("[INFO] Done!" + version);
+                Console.WriteLine("[INFO] Done!");
+                Console.WriteLine("[INFO] v{0} installed.", version);
                 Environment.Exit(0);
             }
         }
