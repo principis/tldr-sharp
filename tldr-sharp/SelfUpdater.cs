@@ -133,7 +133,7 @@ namespace tldr_sharp
 
                 if (process.ExitCode != 0) {
                     Console.WriteLine(
-                        "[ERROR] Oops! Something went wrong!\nHelp us improve your experience by sending an error report.");
+                        "[ERROR] Oops! Something went wrong!{0}Help us improve your experience by sending an error report.", Environment.NewLine);
                     Environment.Exit(1);
                 }
 

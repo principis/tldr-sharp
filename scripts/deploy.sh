@@ -17,7 +17,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 		zip -r "../tldr-sharp_${TRAVIS_TAG#v}_windows${PLATFORM}.zip" *
 
 		# Linux archives
-		rm Mono.Data.Sqlite.dll || true # not necessary on linux
+		rm Mono.Data.Sqlite.dll sqlite3.dll || true # not necessary on linux
 		tar czf "../tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.tar.gz" *
 
 		cd ..

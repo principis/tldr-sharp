@@ -117,7 +117,7 @@ namespace tldr_sharp
 
                     using (SqliteDataReader reader = command.ExecuteReader()) {
                         reader.Read();
-                        return DateTime.Parse(reader.GetString(0));
+                        return DateTime.Parse(reader.GetString(0), CultureInfo.InvariantCulture);
                     }
                 }
             }

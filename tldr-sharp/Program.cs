@@ -75,8 +75,8 @@ namespace tldr_sharp
 
             OptionSet options = new OptionSet
             {
-                "Usage: tldr command [options]\n",
-                "Simplified and community-driven man pages\n",
+                "Usage: tldr command [options]" + Environment.NewLine,
+                "Simplified and community-driven man pages" + Environment.NewLine,
                 {
                     "a|list-all", "List all pages",
                     a => list = ignorePlatform = a != null
@@ -106,14 +106,14 @@ namespace tldr_sharp
                     "list-os", "List all platforms",
                     o => {
                         Cache.Check();
-                        Console.WriteLine(string.Join("\n", Index.ListPlatform()));
+                        Console.WriteLine(string.Join(Environment.NewLine, Index.ListPlatform()));
                     }
                 },
                 {
                     "list-languages", "List all languages",
                     la => {
                         Cache.Check();
-                        Console.WriteLine(string.Join("\n",
+                        Console.WriteLine(string.Join(Environment.NewLine,
                             ListLanguages().Select(x => {
                                 try {
                                     return x + ": " + CultureInfo.GetCultureInfo(x.Replace('_', '-')).EnglishName;
@@ -225,7 +225,7 @@ namespace tldr_sharp
                         new SqliteParameter("@platform", platform ?? GetPlatform())
                     });
             }
-            Console.WriteLine(string.Join("\n",
+            Console.WriteLine(string.Join(Environment.NewLine,
                 pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())));
         }
     }

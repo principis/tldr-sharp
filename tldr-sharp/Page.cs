@@ -120,12 +120,10 @@ namespace tldr_sharp
 
             if (diffPlatform != null) {
                 if (Program.AnsiSupport) {
-                    Console.WriteLine(Ansi.Red + Ansi.Bold + "[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
-                                      " PLATFORM!" + Ansi.Off + "\n");
+                    Console.WriteLine("{0}{1}[WARNING] THIS PAGE IS FOR THE {2} PLATFORM!{3}{4}", Ansi.Red, Ansi.Bold, diffPlatform.ToUpper(), Ansi.Off, Environment.NewLine);
                 } else {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
-                                      " PLATFORM!\n");
+                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE {0} PLATFORM!{1}", diffPlatform.ToUpper(), Environment.NewLine);
                     Console.ForegroundColor = Program.DefaultColor;
                 }
             }
@@ -157,13 +155,13 @@ namespace tldr_sharp
 
             switch (line[0]) {
                 case '#':
-                    line = (Program.AnsiSupport ? Ansi.Underline + Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "") + (formatted ? "\n" : "");
+                    line = (Program.AnsiSupport ? Ansi.Underline + Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "") + (formatted ? Environment.NewLine : "");
                     break;
                 case '>':
                     line = (Program.AnsiSupport ? Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "");
                     break;
                 case '-':
-                    line = (Program.AnsiSupport ? Ansi.Default : "") + (formatted ? "\n" : "") + line + (Program.AnsiSupport ? Ansi.Off : "");
+                    line = (Program.AnsiSupport ? Ansi.Default : "") + (formatted ? Environment.NewLine : "") + line + (Program.AnsiSupport ? Ansi.Off : "");
                     break;
                 case '`':
                     line = (formatted ? "   " : "") + (Program.AnsiSupport ? Ansi.Red : "") + line.Trim('`') + (Program.AnsiSupport ? Ansi.Off : "");
@@ -213,8 +211,8 @@ namespace tldr_sharp
         private static int NotFound(string page)
         {
             Console.WriteLine(
-                "Page not found.\nFeel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{0}",
-                page);
+                "Page not found.{0}Feel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{1}",
+                Environment.NewLine, page);
             return 2;
         }
 
