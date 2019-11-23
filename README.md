@@ -35,8 +35,7 @@ sudo chmod +x tldr
 ```
 
 ### Windows
-Extract the latest [release](https://github.com/principis/tldr-sharp/releases) and download the latest [sqlite3 dll](https://www.sqlite.org/download.html). 
-Extract the dll in the same folder as tldr_sharp.exe.
+Extract the latest [release](https://github.com/principis/tldr-sharp/releases) to a folder of choice, add it to the Path and reboot.
 
 ## Usage
 ```

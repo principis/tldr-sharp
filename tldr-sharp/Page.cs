@@ -119,8 +119,15 @@ namespace tldr_sharp
             }
 
             if (diffPlatform != null) {
-                Console.WriteLine("\x1B[31m\x1b[1m[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
-                                  " PLATFORM!\x1b[0m\n");
+                if (Program.AnsiSupport) {
+                    Console.WriteLine(Ansi.Red + Ansi.Bold + "[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
+                                      " PLATFORM!" + Ansi.Off + "\n");
+                } else {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE " + diffPlatform.ToUpper() +
+                                      " PLATFORM!\n");
+                    Console.ForegroundColor = Program.DefaultColor;
+                }
             }
 
             foreach (string line in File.ReadLines(path)) {
@@ -135,31 +142,31 @@ namespace tldr_sharp
         internal static string ParseLine(string line, bool formatted = false)
         {
             if (line.Contains("{{")) {
-                line = line.Replace("{{", "\x1b[32m").Replace("}}", "\x1b[31m");
+                line = line.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
             }
 
             int urlStart = line.IndexOf("<", StringComparison.Ordinal);
             if (urlStart != -1) {
                 int urlEnd = line.Substring(urlStart).IndexOf(">", StringComparison.Ordinal);
                 if (urlEnd != -1) {
-                    line = line.Substring(0, urlStart) + "\x1b[21m\x1b[4m" +
-                           line.Substring(urlStart + 1, urlEnd - 1) + "\x1b[0m" +
+                    line = line.Substring(0, urlStart) + Ansi.BoldOff + Ansi.Underline +
+                           line.Substring(urlStart + 1, urlEnd - 1) + Ansi.Off +
                            line.Substring(urlStart + urlEnd + 1);
                 }
             }
 
             switch (line[0]) {
                 case '#':
-                    line = "\x1B[4m\x1b[1m" + line.Substring(2) + "\x1b[0m" + (formatted ? "\n" : "");
+                    line = (Program.AnsiSupport ? Ansi.Underline + Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "") + (formatted ? "\n" : "");
                     break;
                 case '>':
-                    line = "\x1b[1m" + line.Substring(2) + "\x1b[0m";
+                    line = (Program.AnsiSupport ? Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "");
                     break;
                 case '-':
-                    line = "\x1b[39m" + (formatted ? "\n" : "") + line + "\x1b[0m";
+                    line = (Program.AnsiSupport ? Ansi.Default : "") + (formatted ? "\n" : "") + line + (Program.AnsiSupport ? Ansi.Off : "");
                     break;
                 case '`':
-                    line = (formatted ? "   " : "") + "\x1b[31m" + line.Trim('`') + "\x1b[0m";
+                    line = (formatted ? "   " : "") + (Program.AnsiSupport ? Ansi.Red : "") + line.Trim('`') + (Program.AnsiSupport ? Ansi.Off : "");
                     break;
             }
 
@@ -253,8 +260,13 @@ namespace tldr_sharp
 
             foreach ((string page, var matches) in results) {
                 foreach (string line in matches) {
-                    Console.WriteLine("\x1b[35m{0}\x1b[39m:\t{1}", page,
-                        ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
+                    
+                    if (Program.AnsiSupport) {
+                        Console.WriteLine("{0}{1}{2}:\t{3}", Ansi.Magenta, page, Ansi.Default,
+                            ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
+                    } else {
+                        Console.WriteLine("{0}:\t{1}", page, ParseLine(line));
+                    }
                 }
             }
 

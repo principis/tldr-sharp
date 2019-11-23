@@ -69,6 +69,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ansi.cs" />
     <Compile Include="Cache.cs" />
     <Compile Include="Index.cs" />
     <Compile Include="Page.cs" />
