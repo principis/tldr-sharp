@@ -140,7 +140,7 @@ namespace tldr_sharp
         internal static string ParseLine(string line, bool formatted = false)
         {
             if (line.Contains("{{")) {
-                line = line.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
+                line = line.Replace("{{", Program.AnsiSupport ? Ansi.Green : "").Replace("}}", Program.AnsiSupport ? Ansi.Red : "");
             }
 
             int urlStart = line.IndexOf("<", StringComparison.Ordinal);
