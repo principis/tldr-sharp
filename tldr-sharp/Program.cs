@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using Mono.Data.Sqlite;
 using Mono.Options;
@@ -17,7 +16,7 @@ namespace tldr_sharp
         private const string ClientSpecVersion = "1.2";
         internal const string DefaultLanguage = "en_US";
 
-        internal static readonly string Language = CultureInfo.CurrentCulture.Name;
+        internal static readonly string Language = CultureInfo.CurrentCulture.Name.Replace('-', '_');
 
         internal static readonly string CachePath =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
