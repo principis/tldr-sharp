@@ -25,7 +25,7 @@ chmod +x linux_install_x64.sh
 
 #### Manual
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
-```
+```sh
 mkdir tldr
 tar xzf <version>.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
@@ -35,7 +35,19 @@ sudo chmod +x tldr
 ```
 
 ### Windows
-Extract the latest [release](https://github.com/principis/tldr-sharp/releases) to a folder of choice, add it to the Path and reboot.
+_Note: Your antivirus may detect tldr-sharp as a virus._
+
+Open powershell as administrator
+
+Run the following command:
+```ps
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/master/scripts/windows_install.ps1'))
+```
+Reopen powershell and run `tldr`.
+
+#### Manual
+
+Extract the latest [release](https://github.com/principis/tldr-sharp/releases) to a folder of choice (for example `C:\ProgramData\tldr-sharp`), add it to the Path and reboot.
 
 ## Usage
 ```
