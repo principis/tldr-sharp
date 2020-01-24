@@ -31,9 +31,11 @@ Foreach ($item in $json.assets) {
     }
 }
 
-if (![string]::IsNullOrEmpty($downloadUrl)){
-  Write-Output "Downloading tldr-sharp from : $downloadUrl"
+if ([string]::IsNullOrEmpty($downloadUrl)){
+    throw "Download url not found."
 }
+
+Write-Output "Downloading tldr-sharp from : $downloadUrl"
 
 if ($env:TEMP -eq $null) {
   $env:TEMP = Join-Path $env:SystemDrive 'temp'
@@ -54,7 +56,7 @@ $tldrPath = "$env:ALLUSERSPROFILE\tldr-sharp"
 if (![System.IO.Directory]::Exists($tldrPath)) {[void][System.IO.Directory]::CreateDirectory($tldrPath)}
 
 Copy-Item -Path "$tempDir\*" -Destination $tldrPath
-Copy-Item -Path "$tldrPath\tldr_sharp.exe" -Destination "$tldrPath\tldr.exe"
+New-Item -ItemType SymbolicLink -Name "$tldrPath\tldr_sharp.exe" -Target "$tldrPath\tldr.exe"
 Remove-Item -Path $tempDir -Recurse -Force
 
 if ($($env:Path).ToLower().Contains($($tldrPath).ToLower()) -eq $false) {
