@@ -21,7 +21,7 @@ namespace tldr_sharp
             Language = language;
             Local = local;
         }
-        
+
         public override string ToString()
         {
             return Name;
@@ -41,14 +41,15 @@ namespace tldr_sharp
                         Program.DefaultLanguage);
                     languages.Add(Program.DefaultLanguage);
                 }
-            } else {
+            }
+            else {
                 languages = new List<string> {language};
             }
 
-            platform = platform ?? GetPlatform();
+            platform ??= GetPlatform();
             string altPlatform = null;
 
-            var results = Query(pageName);
+            List<Page> results = Query(pageName);
 
             if (results.Count == 0) {
                 if ((DateTime.UtcNow.Date - Cache.LastUpdate()).TotalDays > 5) {
@@ -68,7 +69,8 @@ namespace tldr_sharp
             Page page;
             try {
                 page = Find(results, languages, platform);
-            } catch (Exception) {
+            }
+            catch (Exception) {
                 if (prefLanguage != null) {
                     Console.WriteLine("Page not found in the requested language.");
                     return 2;
@@ -77,13 +79,14 @@ namespace tldr_sharp
                 try {
                     page = FindAlternative(results, languages);
                     if (platform != page.Platform && page.Platform != "common") altPlatform = page.Platform;
-                } catch (Exception) {
+                }
+                catch (Exception) {
                     return NotFound(pageName);
                 }
             }
 
             if (!page.Local) {
-                using (var spinner = new CustomSpinner("Page not cached, downloading")) {
+                using (new CustomSpinner("Page not cached, downloading")) {
                     page.Download();
                 }
             }
@@ -95,8 +98,9 @@ namespace tldr_sharp
                 return 1;
             }
 
-            if (markdown)
+            if (markdown) {
                 Console.WriteLine(File.ReadAllText(path));
+            }
             else {
                 return Render(path, altPlatform);
             }
@@ -121,10 +125,13 @@ namespace tldr_sharp
 
             if (diffPlatform != null) {
                 if (Program.AnsiSupport) {
-                    Console.WriteLine("{0}{1}[WARNING] THIS PAGE IS FOR THE {2} PLATFORM!{3}{4}", Ansi.Red, Ansi.Bold, diffPlatform.ToUpper(), Ansi.Off, Environment.NewLine);
-                } else {
+                    Console.WriteLine("{0}{1}[WARNING] THIS PAGE IS FOR THE {2} PLATFORM!{3}{4}", Ansi.Red, Ansi.Bold,
+                        diffPlatform.ToUpper(), Ansi.Off, Environment.NewLine);
+                }
+                else {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE {0} PLATFORM!{1}", diffPlatform.ToUpper(), Environment.NewLine);
+                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE {0} PLATFORM!{1}", diffPlatform.ToUpper(),
+                        Environment.NewLine);
                     Console.ForegroundColor = Program.DefaultColor;
                 }
             }
@@ -141,33 +148,30 @@ namespace tldr_sharp
         internal static string ParseLine(string line, bool formatted = false)
         {
             if (line.Contains("{{")) {
-                line = line.Replace("{{", Program.AnsiSupport ? Ansi.Green : "").Replace("}}", Program.AnsiSupport ? Ansi.Red : "");
+                line = line.Replace("{{", Program.AnsiSupport ? Ansi.Green : "")
+                    .Replace("}}", Program.AnsiSupport ? Ansi.Red : "");
             }
 
             int urlStart = line.IndexOf("<", StringComparison.Ordinal);
             if (urlStart != -1) {
                 int urlEnd = line.Substring(urlStart).IndexOf(">", StringComparison.Ordinal);
-                if (urlEnd != -1) {
+                if (urlEnd != -1)
                     line = line.Substring(0, urlStart) + Ansi.BoldOff + Ansi.Underline +
                            line.Substring(urlStart + 1, urlEnd - 1) + Ansi.Off +
                            line.Substring(urlStart + urlEnd + 1);
-                }
             }
 
-            switch (line[0]) {
-                case '#':
-                    line = (Program.AnsiSupport ? Ansi.Underline + Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "") + (formatted ? Environment.NewLine : "");
-                    break;
-                case '>':
-                    line = (Program.AnsiSupport ? Ansi.Bold : "") + line.Substring(2) + (Program.AnsiSupport ? Ansi.Off : "");
-                    break;
-                case '-':
-                    line = (Program.AnsiSupport ? Ansi.Default : "") + (formatted ? Environment.NewLine : "") + line + (Program.AnsiSupport ? Ansi.Off : "");
-                    break;
-                case '`':
-                    line = (formatted ? "   " : "") + (Program.AnsiSupport ? Ansi.Red : "") + line.Trim('`') + (Program.AnsiSupport ? Ansi.Off : "");
-                    break;
-            }
+            line = line[0] switch {
+                '#' => ((Program.AnsiSupport ? Ansi.Underline + Ansi.Bold : "") + line.Substring(2) +
+                        (Program.AnsiSupport ? Ansi.Off : "") + (formatted ? Environment.NewLine : "")),
+                '>' => ((Program.AnsiSupport ? Ansi.Bold : "") + line.Substring(2) +
+                        (Program.AnsiSupport ? Ansi.Off : "")),
+                '-' => ((Program.AnsiSupport ? Ansi.Default : "") + (formatted ? Environment.NewLine : "") + line +
+                        (Program.AnsiSupport ? Ansi.Off : "")),
+                '`' => ((formatted ? "   " : "") + (Program.AnsiSupport ? Ansi.Red : "") + line.Trim('`') +
+                        (Program.AnsiSupport ? Ansi.Off : "")),
+                _ => line
+            };
 
             return line;
         }
@@ -179,13 +183,15 @@ namespace tldr_sharp
             foreach (string language in languages) {
                 try {
                     return results.First(x => x.Platform == platform && x.Language == language);
-                } catch (InvalidOperationException) { }
+                }
+                catch (InvalidOperationException) { }
             }
 
             foreach (string language in languages) {
                 try {
                     return results.First(x => x.Platform == "common" && x.Language == language);
-                } catch (InvalidOperationException) { }
+                }
+                catch (InvalidOperationException) { }
             }
 
             throw new Exception();
@@ -198,12 +204,12 @@ namespace tldr_sharp
             foreach (string language in languages) {
                 try {
                     return results.First(x => x.Language.Equals(language));
-                } catch (InvalidOperationException) { }
+                }
+                catch (InvalidOperationException) { }
             }
 
-            if (!languages.Contains(Program.DefaultLanguage)) {
+            if (!languages.Contains(Program.DefaultLanguage))
                 return results.First(x => x.Language.Equals(Program.DefaultLanguage));
-            }
 
             throw new Exception();
         }
@@ -233,20 +239,23 @@ namespace tldr_sharp
         {
             try {
                 Cache.DownloadPage(this);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Console.WriteLine("[ERROR] An error has occurred downloading the requested page: {0}", e.Message);
             }
         }
 
         internal static int Search(string searchString, string language, string platform)
         {
-            language = language ?? GetPreferredLanguageOrDefault();
-            platform = platform ?? GetPlatform();
+            language ??= GetPreferredLanguageOrDefault();
+            platform ??= GetPlatform();
 
-            SqliteParameter[] parameters = {new SqliteParameter("@platform", platform), new SqliteParameter("@lang", language)};
-            List<Page> pages = Index.Query("lang = @lang AND (platform = @platform OR platform = 'common')", parameters);
+            SqliteParameter[] parameters =
+                {new SqliteParameter("@platform", platform), new SqliteParameter("@lang", language)};
+            List<Page> pages = Index.Query("lang = @lang AND (platform = @platform OR platform = 'common')",
+                parameters);
 
-            var results = pages.AsParallel().Select(page => {
+            List<(string name, string[] matches)> results = pages.AsParallel().Select(page => {
                 string path = GetPath(page);
                 if (!page.Local) page.Download();
 
@@ -257,16 +266,14 @@ namespace tldr_sharp
 
             results.Sort((x, y) => string.Compare(x.Item1, y.Item1, StringComparison.Ordinal));
 
-            foreach ((string page, var matches) in results) {
-                foreach (string line in matches) {
-                    
-                    if (Program.AnsiSupport) {
-                        Console.WriteLine("{0}{1}{2}:\t{3}", Ansi.Magenta, page, Ansi.Default,
-                            ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
-                    } else {
-                        Console.WriteLine("{0}:\t{1}", page, ParseLine(line));
-                    }
+            foreach ((string page, string[] matches) in results)
+            foreach (string line in matches) {
+                if (Program.AnsiSupport) {
+                    Console.WriteLine("{0}{1}{2}:\t{3}", Ansi.Magenta, page, Ansi.Default,
+                        ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
                 }
+                else
+                    Console.WriteLine("{0}:\t{1}", page, ParseLine(line));
             }
 
             return 0;

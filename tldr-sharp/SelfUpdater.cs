@@ -17,84 +17,79 @@ namespace tldr_sharp
         internal static void CheckSelfUpdate()
         {
             var spinner = new CustomSpinner("Checking for update");
-            
-            using (var client = new WebClient()) {
-                client.Headers.Add("user-agent", Program.UserAgent);
 
-                string json;
+            using var client = new WebClient();
+            client.Headers.Add("user-agent", Program.UserAgent);
 
-                try {
-                    json = client.DownloadString(ApiUrl);
-                } catch (WebException e) {
-                    Console.WriteLine($"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
+            string json;
 
-                    Environment.Exit(1);
-                    return;
+            try {
+                json = client.DownloadString(ApiUrl);
+            }
+            catch (WebException e) {
+                Console.WriteLine(
+                    $"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
+
+                Environment.Exit(1);
+                return;
+            }
+
+            var remoteVersion = new Version(
+                json.Split(new[] {","}, StringSplitOptions.None)
+                    .First(s => s.Contains("tag_name"))
+                    .Split(':')[1]
+                    .Trim('"', ' ', 'v'));
+
+            spinner.Dispose();
+            if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) <= 0) {
+                Console.WriteLine("tldr-sharp is up to date!");
+                return;
+            }
+
+            if (Environment.OSVersion.Platform == PlatformID.Unix) {
+                var updateQuestion =
+                    new YesNoQuestion($"Version {remoteVersion} is available. Do you want to update?") {
+                        DefaultAnswer = YesNoAnswer.No,
+                        ForegroundColor = null,
+                        QuestionForegroundColor = null,
+                        BackgroundColor = null,
+                        QuestionBackgroundColor = null
+                    };
+
+                if (updateQuestion.ReadAnswer() != YesNoAnswer.Yes) return;
+
+                Console.WriteLine("Select desired method:");
+                Console.WriteLine("0\tx86 Debian package (.deb)");
+                Console.WriteLine("1\tx64 Debian package (.deb)");
+                Console.WriteLine("2\tx86 install script (.sh)");
+                Console.WriteLine("3\tx64 install script (.sh)");
+
+                string option;
+                int optionNb;
+                do {
+                    Console.Write("Enter number 0..3: ");
+                    option = Console.ReadLine();
+                } while (!int.TryParse(option, out optionNb) || optionNb > 3 || optionNb < 0);
+
+                Console.WriteLine();
+
+                switch (optionNb) {
+                    case 0:
+                        SelfUpdate(UpdateType.Debian, remoteVersion);
+                        break;
+                    case 1:
+                        SelfUpdate(UpdateType.DebianX64, remoteVersion);
+                        break;
+                    case 2:
+                        SelfUpdate(UpdateType.Script, remoteVersion);
+                        break;
+                    case 3:
+                        SelfUpdate(UpdateType.ScriptX64, remoteVersion);
+                        break;
                 }
-
-                var remoteVersion = new Version(
-                    json.Split(new[] {","}, StringSplitOptions.None)
-                        .First(s => s.Contains("tag_name"))
-                        .Split(':')[1]
-                        .Trim('"', ' ', 'v'));
-
-                spinner.Dispose();
-                if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) <= 0)
-                {
-                    Console.WriteLine("tldr-sharp is up to date!");
-                    return;
-                }
-
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
-                {
-                    var updateQuestion =
-                        new YesNoQuestion($"Version {remoteVersion} is available. Do you want to update?")
-                        {
-                            DefaultAnswer = YesNoAnswer.No,
-                            ForegroundColor = null,
-                            QuestionForegroundColor = null,
-                            BackgroundColor = null,
-                            QuestionBackgroundColor = null
-                        };
-
-                    if (updateQuestion.ReadAnswer() != YesNoAnswer.Yes) return;
-
-                    Console.WriteLine("Select desired method:");
-                    Console.WriteLine("0\tx86 Debian package (.deb)");
-                    Console.WriteLine("1\tx64 Debian package (.deb)");
-                    Console.WriteLine("2\tx86 install script (.sh)");
-                    Console.WriteLine("3\tx64 install script (.sh)");
-                    
-                    string option;
-                    int optionNb;
-                    do
-                    {
-                        Console.Write("Enter number 0..3: ");
-                        option = Console.ReadLine();
-                    } while (!int.TryParse(option, out optionNb) || optionNb > 3 || optionNb < 0);
-
-                    Console.WriteLine();
-
-                    switch (optionNb)
-                    {
-                        case 0:
-                            SelfUpdate(UpdateType.Debian, remoteVersion);
-                            break;
-                        case 1:
-                            SelfUpdate(UpdateType.DebianX64, remoteVersion);
-                            break;
-                        case 2:
-                            SelfUpdate(UpdateType.Script, remoteVersion);
-                            break;
-                        case 3:
-                            SelfUpdate(UpdateType.ScriptX64, remoteVersion);
-                            break;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion, UpdateUrl);
-                }
+            }
+            else {
+                Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion, UpdateUrl);
             }
         }
 
@@ -102,13 +97,14 @@ namespace tldr_sharp
         {
             Console.WriteLine($"Updating tldr-sharp to v{version}");
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            
+
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
 
             string url;
             try {
                 url = GetUpdateUrl(type, version);
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Console.WriteLine("[ERROR] {0}", e.Message);
                 Environment.Exit(1);
                 return;
@@ -117,14 +113,16 @@ namespace tldr_sharp
             using (var client = new WebClient()) {
                 try {
                     client.DownloadFile(url, tmpPath);
-                } catch (WebException e) {
-                    Console.WriteLine($"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
+                }
+                catch (WebException e) {
+                    Console.WriteLine(
+                        $"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
                     Environment.Exit(1);
                     return;
                 }
             }
 
-            var startInfo = new ProcessStartInfo()
+            var startInfo = new ProcessStartInfo
                 {FileName = "/bin/bash", UseShellExecute = false, RedirectStandardOutput = true};
 
             switch (type) {
@@ -140,24 +138,24 @@ namespace tldr_sharp
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
 
-            using (var process = new Process() {StartInfo = startInfo,}) {
+            using (var process = new Process() {StartInfo = startInfo}) {
                 process.Start();
                 Console.Write(process.StandardOutput.ReadToEnd());
-                while (!process.HasExited) {
-                    Thread.Sleep(100);
-                }
+                
+                while (!process.HasExited) Thread.Sleep(100);
 
                 File.Delete(tmpPath);
 
                 if (process.ExitCode != 0) {
                     Console.WriteLine(
-                        "[ERROR] Oops! Something went wrong!{0}Help us improve your experience by sending an error report.", Environment.NewLine);
+                        "[ERROR] Oops! Something went wrong!{0}Help us improve your experience by sending an error report.",
+                        Environment.NewLine);
                     Environment.Exit(1);
                 }
             }
 
             CustomSpinner.Run("Clearing Cache", Cache.Clear);
-                
+
             Console.WriteLine("[INFO] v{0} installed.", version);
             Environment.Exit(0);
         }
@@ -166,18 +164,13 @@ namespace tldr_sharp
         {
             string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/" +
                                  $"tldr-sharp_{version.Major}.{version.Minor}.{version.Build}";
-            switch (type) {
-                case UpdateType.Debian:
-                    return $"{downloadUrl}.deb";
-                case UpdateType.DebianX64:
-                    return $"{downloadUrl}_x64.deb";
-                case UpdateType.Script:
-                    return $"{downloadUrl}_linux.sh";
-                case UpdateType.ScriptX64:
-                    return $"{downloadUrl}_linux_x64.sh";
-            }
-
-            return null;
+            return type switch {
+                UpdateType.Debian => $"{downloadUrl}.deb",
+                UpdateType.DebianX64 => $"{downloadUrl}_x64.deb",
+                UpdateType.Script => $"{downloadUrl}_linux.sh",
+                UpdateType.ScriptX64 => $"{downloadUrl}_linux_x64.sh",
+                _ => null
+            };
         }
 
         private enum UpdateType

@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace tldr_sharp {
+namespace tldr_sharp
+{
     internal class PageComparer : IComparer<Page>
     {
         private readonly string[] _languages;

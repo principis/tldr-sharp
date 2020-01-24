@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using DustInTheWind.ConsoleTools;
 using DustInTheWind.ConsoleTools.Spinners;
 
@@ -9,10 +8,7 @@ namespace tldr_sharp
     {
         public CustomSpinner(InlineTextBlock label = null, InlineTextBlock doneText = null)
         {
-            if (label != null)
-            {
-                label.Text = label.Text.TrimEnd() + " ";
-            }
+            if (label != null) label.Text = label.Text.TrimEnd() + " ";
             Label = label ?? Label;
             DoneText = doneText ?? new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
             Display();

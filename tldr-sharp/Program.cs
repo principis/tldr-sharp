@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Globalization;
-using Mono.Data.Sqlite;
-using Mono.Options;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using Mono.Data.Sqlite;
+using Mono.Options;
 using NaturalSort.Extension;
 using static tldr_sharp.Index;
 
@@ -46,70 +46,61 @@ namespace tldr_sharp
         public static int Main(string[] args)
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
-
                 IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
                 if (!GetConsoleMode(iStdOut, out uint outConsoleMode)) {
                     AnsiSupport = false;
-                } else {
+                }
+                else {
                     outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
-                    
-                    if (!SetConsoleMode(iStdOut, outConsoleMode)) {
-                        AnsiSupport = false;
-                    }
+
+                    if (!SetConsoleMode(iStdOut, outConsoleMode)) AnsiSupport = false;
                 }
             }
 
 
-            bool showHelp = false;
+            var showHelp = false;
 
-            bool list = false;
-            bool ignorePlatform = false;
+            var list = false;
+            var ignorePlatform = false;
 
             string language = null;
             string platform = null;
             string search = null;
 
-            bool markdown = false;
+            var markdown = false;
             string render = null;
 
-            OptionSet options = new OptionSet
-            {
+            var options = new OptionSet {
                 "Usage: tldr command [options]" + Environment.NewLine,
-                "Simplified and community-driven man pages" + Environment.NewLine,
-                {
+                "Simplified and community-driven man pages" + Environment.NewLine, {
                     "a|list-all", "List all pages",
                     a => list = ignorePlatform = a != null
-                },
-                {
+                }, {
                     "c|clear-cache", "Clear the cache",
                     c => {
                         using (new CustomSpinner("Clearing cache")) {
                             Cache.Clear();
                         }
+
                         Environment.Exit(0);
                     }
-                },
-                {
+                }, {
                     "f=|render=", "Render a specific markdown file",
                     v => render = v
-                },
-                {
+                }, {
                     "h|help", "Display this help text",
                     h => showHelp = h != null
-                },
-                {
+                }, {
                     "l|list", "List all pages for the current platform and language",
                     l => list = l != null
-                },
-                {
+                }, {
                     "list-os", "List all platforms",
                     o => {
                         Cache.Check();
-                        Console.WriteLine(string.Join(Environment.NewLine, Index.ListPlatform()));
+                        Console.WriteLine(string.Join(Environment.NewLine, ListPlatform()));
                     }
-                },
-                {
+                }, {
                     "list-languages", "List all languages",
                     la => {
                         Cache.Check();
@@ -117,40 +108,34 @@ namespace tldr_sharp
                             ListLanguages().Select(x => {
                                 try {
                                     return x + ": " + CultureInfo.GetCultureInfo(x.Replace('_', '-')).EnglishName;
-                                } catch (CultureNotFoundException) {
+                                }
+                                catch (CultureNotFoundException) {
                                     return null;
                                 }
                             }).Where(x => x != null)));
                     }
-                },
-                {
+                }, {
                     "L=|language=|lang=", "Specifies the preferred language",
                     la => language = la
-                },
-                {
+                }, {
                     "m|markdown", "Show the markdown source of a page",
                     v => markdown = v != null
-                },
-                {
+                }, {
                     "p=|platform=", "Override the default platform",
                     o => platform = o
-                },
-                {
+                }, {
                     "s=|search=", "Search for a string",
                     s => search = s
-                },
-                {
+                }, {
                     "u|update", "Update the cache",
                     u => Updater.Update()
-                },
-                {
+                }, {
                     "self-update", "Check for tldr-sharp updates",
                     u => {
                         SelfUpdater.CheckSelfUpdate();
                         Environment.Exit(0);
                     }
-                },
-                {
+                }, {
                     "v|version", "Show version information",
                     v => {
                         Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major +
@@ -166,7 +151,8 @@ namespace tldr_sharp
             List<string> extra;
             try {
                 extra = options.Parse(args);
-            } catch (OptionException e) {
+            }
+            catch (OptionException e) {
                 Console.WriteLine(e.Message);
                 return 1;
             }
@@ -176,9 +162,7 @@ namespace tldr_sharp
                 return args.Length == 0 ? 1 : 0;
             }
 
-            if (render != null) {
-                return Page.Render(render);
-            }
+            if (render != null) return Page.Render(render);
 
             // All following functions rely on the cache, so check it.
             Cache.Check();
@@ -195,11 +179,9 @@ namespace tldr_sharp
                 return 0;
             }
 
-            if (search != null) {
-                return Page.Search(search, language, platform);
-            }
+            if (search != null) return Page.Search(search, language, platform);
 
-            string page = string.Empty;
+            var page = string.Empty;
             foreach (string arg in extra) {
                 if (arg.StartsWith("-")) {
                     if (page == string.Empty) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
@@ -218,13 +200,15 @@ namespace tldr_sharp
             if (ignorePlatform) {
                 pages = Query("lang = @lang",
                     new[] {new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault())});
-            } else {
+            }
+            else {
                 pages = Query("lang = @lang AND (platform = @platform OR platform = 'common')",
                     new[] {
                         new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()),
                         new SqliteParameter("@platform", platform ?? GetPlatform())
                     });
             }
+            
             Console.WriteLine(string.Join(Environment.NewLine,
                 pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())));
         }
