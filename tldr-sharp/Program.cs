@@ -84,9 +84,9 @@ namespace tldr_sharp
                 {
                     "c|clear-cache", "Clear the cache",
                     c => {
-                        Console.WriteLine("Clearing cache...");
-                        Cache.Clear();
-                        Console.WriteLine("Cache cleared.");
+                        using (new CustomSpinner("Clearing cache")) {
+                            Cache.Clear();
+                        }
                         Environment.Exit(0);
                     }
                 },

@@ -83,8 +83,9 @@ namespace tldr_sharp
             }
 
             if (!page.Local) {
-                Console.WriteLine("Page not cached, downloading...");
-                page.Download();
+                using (var spinner = new CustomSpinner("Page not cached, downloading")) {
+                    page.Download();
+                }
             }
 
             string path = page.GetPath();

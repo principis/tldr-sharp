@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -19,7 +20,7 @@ namespace tldr_sharp
 
         internal static void Update()
         {
-            Console.WriteLine("Updating cache...");
+            var spinner = new CustomSpinner("Updating cache");
 
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
@@ -48,8 +49,7 @@ namespace tldr_sharp
                     return;
                 }
             }
-
-
+            
             Cache.Clear();
 
             using (Stream stream = File.OpenRead(tmpPath))
@@ -66,9 +66,9 @@ namespace tldr_sharp
             }
 
             File.Delete(tmpPath);
+            spinner.Dispose();
+            
             CreateIndex();
-
-            Console.WriteLine("Cache updated.");
         }
 
         private static void DownloadPages(string url, string tmpPath)
@@ -85,7 +85,8 @@ namespace tldr_sharp
 
         private static void CreateIndex()
         {
-            Console.WriteLine("Creating index...");
+            using var spinner = new CustomSpinner("Creating index");
+            
             var cacheDir = new DirectoryInfo(Program.CachePath);
 
             SqliteConnection.CreateFile(Program.DbPath);
