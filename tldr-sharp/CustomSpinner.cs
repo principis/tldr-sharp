@@ -14,6 +14,13 @@ namespace tldr_sharp
             Display();
         }
 
+        public void Reset(InlineTextBlock label)
+        {
+            Label = label.Text = label.Text.TrimEnd() + " ";
+            DoneText = new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
+            Display();
+        }
+
         protected override void OnClosed()
         {
             base.OnClosed();
@@ -32,10 +39,17 @@ namespace tldr_sharp
                 action();
                 spinner.Close();
             }
-            catch {
-                spinner.DoneText = new InlineTextBlock("[Error]", ConsoleColor.DarkRed);
+            catch (Exception e) {
+                spinner.DoneText = null;
+                string error = e.Message;
+                if (error.StartsWith("Error:")) error = error.Substring(7);
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.Write("[ERROR]");
+                Console.ResetColor();
+                Console.Write($" {error}");
+                
                 spinner.Close();
-                throw;
+                Environment.Exit(1);
             }
         }
     }
