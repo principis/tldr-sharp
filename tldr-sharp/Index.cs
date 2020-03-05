@@ -139,5 +139,19 @@ namespace tldr_sharp
             using SqliteDataReader reader = command.ExecuteReader();
             return reader.HasRows;
         }
+
+        internal static void SetPageAsDownloaded(Page page)
+        {
+            using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
+            conn.Open();
+            using SqliteCommand command = conn.CreateCommand();
+            command.CommandText =
+                "UPDATE pages SET local = TRUE WHERE name = @name AND lang = @lang AND platform = @platform";
+            command.Parameters.Add(new SqliteParameter("@name", page.Name));
+            command.Parameters.Add(new SqliteParameter("@platform", page.Platform));
+            command.Parameters.Add(new SqliteParameter("@lang", page.Language));
+
+            command.ExecuteNonQuery();
+        }
     }
 }

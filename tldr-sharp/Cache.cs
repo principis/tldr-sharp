@@ -14,25 +14,16 @@ namespace tldr_sharp
         {
             if (File.Exists(Program.DbPath)) return;
 
-            Console.WriteLine("Database not found.");
+            CustomConsole.WriteWarning("Database not found.");
             Updater.Update();
         }
 
         internal static void Clear()
         {
-            DirectoryInfo cacheDir;
-            try {
-                if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
+            if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
 
-                cacheDir = new DirectoryInfo(Program.CachePath);
-                if (cacheDir.Exists) cacheDir.Delete(true);
-            }
-            catch (Exception e) {
-                Console.WriteLine("[ERROR] {0}", e.Message);
-                Environment.Exit(1);
-                return;
-            }
-
+            var cacheDir = new DirectoryInfo(Program.CachePath);
+            if (cacheDir.Exists) cacheDir.Delete(true);
             cacheDir.Create();
         }
 
@@ -43,25 +34,15 @@ namespace tldr_sharp
 
             using (var client = new WebClient()) {
                 client.Headers.Add("user-agent", Program.UserAgent);
-
-
+                
                 string language = page.Language == Program.DefaultLanguage ? string.Empty : $".{page.Language}";
                 string data = client.DownloadString(address: $"{Remote}{language}/{page.Platform}/{page.Name}.md");
 
                 using StreamWriter sw = pageFile.CreateText();
                 sw.WriteLine(data);
             }
-
-            using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
-            conn.Open();
-            using SqliteCommand command = conn.CreateCommand();
-            command.CommandText =
-                "UPDATE pages SET local = TRUE WHERE name = @name AND lang = @lang AND platform = @platform";
-            command.Parameters.Add(new SqliteParameter("@name", page.Name));
-            command.Parameters.Add(new SqliteParameter("@platform", page.Platform));
-            command.Parameters.Add(new SqliteParameter("@lang", page.Language));
-
-            command.ExecuteNonQuery();
+            
+            Index.SetPageAsDownloaded(page);
         }
 
         internal static DateTime LastUpdate()
