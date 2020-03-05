@@ -86,9 +86,7 @@ namespace tldr_sharp
             }
 
             if (!page.Local) {
-                using (new CustomSpinner("Page not cached, downloading")) {
-                    page.Download();
-                }
+                CustomSpinner.Run("Page not cached. Downloading", page.Download);
             }
 
             string path = page.GetPath();
@@ -241,7 +239,7 @@ namespace tldr_sharp
                 Cache.DownloadPage(this);
             }
             catch (Exception e) {
-                Console.WriteLine("[ERROR] An error has occurred downloading the requested page: {0}", e.Message);
+                throw new Exception($"An error has occurred downloading the requested page: {e.Message.Substring(7)}");
             }
         }
 

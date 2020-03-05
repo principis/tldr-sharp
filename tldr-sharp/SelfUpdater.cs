@@ -27,8 +27,8 @@ namespace tldr_sharp
                 json = client.DownloadString(ApiUrl);
             }
             catch (WebException e) {
-                Console.WriteLine(
-                    $"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
+                CustomConsole.WriteError(
+                    $"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
 
                 Environment.Exit(1);
                 return;
@@ -100,23 +100,15 @@ namespace tldr_sharp
 
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
 
-            string url;
-            try {
-                url = GetUpdateUrl(type, version);
-            }
-            catch (Exception e) {
-                Console.WriteLine("[ERROR] {0}", e.Message);
-                Environment.Exit(1);
-                return;
-            }
+            string url = GetUpdateUrl(type, version);
 
             using (var client = new WebClient()) {
                 try {
                     client.DownloadFile(url, tmpPath);
                 }
                 catch (WebException e) {
-                    Console.WriteLine(
-                        $"[ERROR] Please make sure you have a functioning internet connection. {e.Message}");
+                    CustomConsole.WriteError(
+                        $"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
                     Environment.Exit(1);
                     return;
                 }
@@ -141,7 +133,7 @@ namespace tldr_sharp
             using (var process = new Process() {StartInfo = startInfo}) {
                 process.Start();
                 Console.Write(process.StandardOutput.ReadToEnd());
-                
+
                 while (!process.HasExited) Thread.Sleep(100);
 
                 File.Delete(tmpPath);
