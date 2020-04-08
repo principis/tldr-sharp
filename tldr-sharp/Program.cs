@@ -45,19 +45,7 @@ namespace tldr_sharp
 
         public static int Main(string[] args)
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT) {
-                IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-
-                if (!GetConsoleMode(iStdOut, out uint outConsoleMode)) {
-                    AnsiSupport = false;
-                }
-                else {
-                    outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
-
-                    if (!SetConsoleMode(iStdOut, outConsoleMode)) AnsiSupport = false;
-                }
-            }
-
+            CheckWindowsAnsiSupport();
 
             var showHelp = false;
 
@@ -211,6 +199,22 @@ namespace tldr_sharp
             
             Console.WriteLine(string.Join(Environment.NewLine,
                 pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())));
+        }
+
+        private static void CheckWindowsAnsiSupport()
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+
+            IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+            if (!GetConsoleMode(iStdOut, out uint outConsoleMode)) {
+                AnsiSupport = false;
+            }
+            else {
+                outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+
+                if (!SetConsoleMode(iStdOut, outConsoleMode)) AnsiSupport = false;
+            }
         }
     }
 }
