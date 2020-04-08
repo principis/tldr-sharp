@@ -32,7 +32,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 		tempdir=$(mktemp -d 2>/dev/null || mktemp -d -t tmp)
 
 		mkdir -p "$tempdir/usr/lib/tldr-sharp"
-		cp $TARGET/* "$tempdir/usr/lib/tldr-sharp"
+		cp $TARGET/*.dll $TARGET/*.exe "$tempdir/usr/lib/tldr-sharp"
 		chmod 755 "$tempdir/usr/lib/tldr-sharp/"*
 
 		mkdir -p "$tempdir/usr/bin"
