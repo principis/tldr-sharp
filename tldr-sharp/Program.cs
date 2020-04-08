@@ -67,10 +67,7 @@ namespace tldr_sharp
                 }, {
                     "c|clear-cache", "Clear the cache",
                     c => {
-                        using (new CustomSpinner("Clearing cache")) {
-                            Cache.Clear();
-                        }
-
+                        CustomSpinner.Run("Clearing cache", Cache.Clear);
                         Environment.Exit(0);
                     }
                 }, {
