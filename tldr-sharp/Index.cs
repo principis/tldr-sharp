@@ -20,10 +20,10 @@ namespace tldr_sharp
 
             using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
             conn.Open();
-            
+
             using var command = new SqliteCommand(conn);
             using SqliteTransaction transaction = conn.BeginTransaction();
-            
+
             command.CommandText =
                 "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7), local INTEGER)";
             command.ExecuteNonQuery();
@@ -78,7 +78,8 @@ namespace tldr_sharp
 
             transaction.Commit();
         }
-        internal static List<Page> Query(string query, SqliteParameter[] parameters, string page = null)
+
+        private static List<Page> Query(string query, SqliteParameter[] parameters, string page = null)
         {
             using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
             conn.Open();
@@ -97,12 +98,35 @@ namespace tldr_sharp
                 if (page == null)
                     results.Add(new Page(reader.GetString(0), reader.GetString(1), reader.GetString(2),
                         reader.GetBoolean(3)));
-                else
+                else {
                     results.Add(new Page(page, reader.GetString(0), reader.GetString(1),
                         reader.GetBoolean(2)));
+                }
             }
 
             return results;
+        }
+
+        internal static List<Page> QueryByLanguageAndPlatform(string language, string platform)
+        {
+            return Query("lang = @lang AND (platform = @platform OR platform = 'common')",
+                new[] {
+                    new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()),
+                    new SqliteParameter("@platform", platform ?? GetPlatform())
+                });
+        }
+
+        internal static List<Page> QueryByName(string page)
+        {
+            return Query("name = @name ORDER BY platform DESC",
+                new[] {new SqliteParameter("@name", page)},
+                page);
+        }
+
+        internal static List<Page> QueryByLanguage(string language)
+        {
+            return Query("lang = @lang",
+                new[] {new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault())});
         }
 
         internal static string GetPlatform()
@@ -153,7 +177,7 @@ namespace tldr_sharp
             return valid;
         }
 
-        internal static List<string> GetEnvLanguages()
+        private static List<string> GetEnvLanguages()
         {
             var languages = new List<string> {Program.Language};
             List<string> envs = Environment.GetEnvironmentVariable("LANGUAGE")

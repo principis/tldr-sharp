@@ -12,14 +12,14 @@ namespace tldr_sharp
             Console.ResetColor();
             Console.WriteLine($" {error}");
         }
-        
-        public static void WriteWarning(string error)
+
+        public static void WriteWarning(string warning)
         {
-            if (error.StartsWith("Error:")) error = error.Substring(7);
+            if (warning.StartsWith("Error:")) warning = warning.Substring(7);
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.Write("[WARN]");
             Console.ResetColor();
-            Console.WriteLine($" {error}");
+            Console.WriteLine($" {warning}");
         }
     }
 }

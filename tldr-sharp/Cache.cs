@@ -34,14 +34,14 @@ namespace tldr_sharp
 
             using (var client = new WebClient()) {
                 client.Headers.Add("user-agent", Program.UserAgent);
-                
-                string language = page.Language == Program.DefaultLanguage ? string.Empty : $".{page.Language}";
+
+                string language = page.DirLanguage;
                 string data = client.DownloadString(address: $"{Remote}{language}/{page.Platform}/{page.Name}.md");
 
                 using StreamWriter sw = pageFile.CreateText();
                 sw.WriteLine(data);
             }
-            
+
             Index.SetPageAsDownloaded(page);
         }
 

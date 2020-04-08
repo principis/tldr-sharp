@@ -17,7 +17,7 @@ namespace tldr_sharp
         private const int STD_OUTPUT_HANDLE = -11;
         private const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
         private const uint DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
-        
+
         [DllImport("kernel32.dll")]
         private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
@@ -26,8 +26,8 @@ namespace tldr_sharp
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr GetStdHandle(int nStdHandle);
-        
-        
+
+
         private const string ClientSpecVersion = "1.2";
         internal const string DefaultLanguage = "en_US";
         internal static bool AnsiSupport = true;
@@ -147,7 +147,7 @@ namespace tldr_sharp
                 return args.Length == 0 ? 1 : 0;
             }
 
-            if (render != null) return Page.Render(render);
+            if (render != null) return PageController.Render(render);
 
             // All following functions rely on the cache, so check it.
             Cache.Check();
@@ -160,11 +160,11 @@ namespace tldr_sharp
             }
 
             if (list) {
-                ListAll(ignorePlatform, language, platform);
+                PageController.ListAll(ignorePlatform, language, platform);
                 return 0;
             }
 
-            if (search != null) return Page.Search(search, language, platform);
+            if (search != null) return PageController.Search(search, language, platform);
 
             var page = string.Empty;
             foreach (string arg in extra) {
@@ -176,26 +176,7 @@ namespace tldr_sharp
                 page += $" {arg}";
             }
 
-            return page.Trim().Length > 0 ? Page.Print(page, language, platform, markdown) : 0;
-        }
-
-        private static void ListAll(bool ignorePlatform, string language = null, string platform = null)
-        {
-            List<Page> pages;
-            if (ignorePlatform) {
-                pages = Query("lang = @lang",
-                    new[] {new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault())});
-            }
-            else {
-                pages = Query("lang = @lang AND (platform = @platform OR platform = 'common')",
-                    new[] {
-                        new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()),
-                        new SqliteParameter("@platform", platform ?? GetPlatform())
-                    });
-            }
-            
-            Console.WriteLine(string.Join(Environment.NewLine,
-                pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())));
+            return page.Trim().Length > 0 ? PageController.Print(page, language, platform, markdown) : 0;
         }
 
         private static void CheckWindowsAnsiSupport()
