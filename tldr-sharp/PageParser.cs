@@ -47,7 +47,7 @@ namespace tldr_sharp
             if (urlStart != -1) {
                 int urlEnd = builder.IndexOf(">", urlStart);
                 if (urlEnd != -1)
-                    builder.Insert(urlStart, Ansi.BoldOff + Ansi.Underline).Insert(urlEnd, Ansi.Off);
+                    builder.Insert(urlEnd, Ansi.Off).Insert(urlStart + 1, Ansi.BoldOff + Ansi.Underline);
             }
 
             switch (builder[0]) {
@@ -64,8 +64,32 @@ namespace tldr_sharp
                     if (formatted) builder.Insert(0, Environment.NewLine);
                     break;
                 case '`':
-                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red).Insert(0, formatted ? Spacing : "")
+                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red)
+                        .Insert(0, formatted ? Spacing : "")
                         .Append(Ansi.Off);
+                    break;
+            }
+
+            return builder.ToString();
+        }
+
+        internal static string ParseSearchLine(string line)
+        {
+            var builder = new StringBuilder(line);
+
+            if (line.Contains("{{")) builder.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
+
+            switch (builder[0]) {
+                case '#':
+                    builder.Remove(0, 2);
+                    break;
+                case '>':
+                    builder.Remove(0, 2);
+                    break;
+                case '-':
+                    break;
+                case '`':
+                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red).Append(Ansi.Off);
                     break;
             }
 
@@ -86,25 +110,30 @@ namespace tldr_sharp
             int maxSearchLength = sb.Length - length + 1;
 
             if (ignoreCase) {
-                for (int i = startIndex; i < maxSearchLength; ++i)
+                for (int i = startIndex; i < maxSearchLength; ++i) {
                     if (char.ToLower(sb[i]) == char.ToLower(value[0])) {
                         index = 1;
-                        while (index < length && char.ToLower(sb[i + index]) == char.ToLower(value[index])) ++index;
+                        while (index < length && char.ToLower(sb[i + index]) == char.ToLower(value[index])) {
+                            ++index;
+                        }
 
                         if (index == length) return i;
                     }
+                }
 
                 return -1;
             }
 
-            for (int i = startIndex; i < maxSearchLength; ++i)
+            for (int i = startIndex; i < maxSearchLength; ++i) {
                 if (sb[i] == value[0]) {
                     index = 1;
-                    while (index < length && sb[i + index] == value[index])
+                    while (index < length && sb[i + index] == value[index]) {
                         ++index;
+                    }
 
                     if (index == length) return i;
                 }
+            }
 
             return -1;
         }

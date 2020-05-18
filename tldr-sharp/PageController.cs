@@ -18,14 +18,26 @@ namespace tldr_sharp
 
             results.Sort((x, y) => string.Compare(x.Item1, y.Item1, StringComparison.Ordinal));
 
+            int keyLength = results.Aggregate("", (max, cur) => max.Length > cur.name.Length ? max : cur.name).Length +
+                            1;
+
+            if (Program.AnsiSupport) {
+                keyLength += Ansi.Magenta.Length + Ansi.Default.Length;
+            }
+
             foreach ((string page, string[] matches) in results)
             foreach (string line in matches) {
                 if (Program.AnsiSupport) {
-                    Console.WriteLine("{0}{1}{2}:\t{3}", Ansi.Magenta, page, Ansi.Default,
-                        PageParser.ParseLine(line).Replace(searchString, "\x1b[4m" + searchString + "\x1b[24m"));
+                    string selector = $"{Ansi.Magenta}{page}{Ansi.Default}:";
+
+                    Console.WriteLine("{0}\t{1}", selector.PadRight(keyLength),
+                        PageParser.ParseSearchLine(line)
+                            .Replace(searchString, Ansi.Underline + searchString + Ansi.UnderlineOff));
                 }
-                else
-                    Console.WriteLine("{0}:\t{1}", page, PageParser.ParseLine(line));
+                else {
+                    string selector = $"{page}:";
+                    Console.WriteLine("{0}\t{1}", selector.PadRight(keyLength), PageParser.ParseLine(line));
+                }
             }
 
             return 0;
