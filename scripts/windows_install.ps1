@@ -1,15 +1,17 @@
-﻿Write-Host "[INFO] Installing tldr-sharp"
+﻿Write-Output "[INFO] Installing tldr-sharp"
 
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     throw "Powershell v5 or newer is required."
 }
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::TLS12
 
 $apiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest"
 
 $webClient = new-object system.net.webclient
 $webClient.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)")
 
-$json = $webClient.DownloadString("https://api.github.com/repos/principis/tldr-sharp/releases/latest") | ConvertFrom-Json
+$json = $webClient.DownloadString($apiUrl) | ConvertFrom-Json
 
 
 $downloadUrl = ""
@@ -37,7 +39,7 @@ if ([string]::IsNullOrEmpty($downloadUrl)){
 
 Write-Output "Downloading tldr-sharp from : $downloadUrl"
 
-if ($env:TEMP -eq $null) {
+if ($null -eq $env:TEMP) {
   $env:TEMP = Join-Path $env:SystemDrive 'temp'
 }
 $tempDir = Join-Path $env:TEMP "tldr-sharp"
@@ -53,11 +55,21 @@ Remove-Item -Path $file
 
 $tldrPath = "$env:ALLUSERSPROFILE\tldr-sharp"
 
-if (![System.IO.Directory]::Exists($tldrPath)) {[void][System.IO.Directory]::CreateDirectory($tldrPath)}
+if ([System.IO.Directory]::Exists($tldrPath)) {
+    Remove-Item -Path $tldrPath -Recurse -Force
+}
+[void][System.IO.Directory]::CreateDirectory($tldrPath)
 
 Copy-Item -Path "$tempDir\*" -Destination $tldrPath
-New-Item -ItemType SymbolicLink -Name "$tldrPath\tldr_sharp.exe" -Target "$tldrPath\tldr.exe"
 Remove-Item -Path $tempDir -Recurse -Force
+
+if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr_sharp.exe" -Path "$tldrPath/tldr.exe"
+    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr_sharp.exe.config" -Path "$tldrPath/tldr.exe.config"
+} else {
+    Copy-Item -Path "$tldrPath\tldr_sharp.exe" -Destination "$tldrPath\tldr.exe"
+    Copy-Item -Path "$tldrPath\tldr_sharp.exe.config" -Destination "$tldrPath\tldr.exe.config"
+}
 
 if ($($env:Path).ToLower().Contains($($tldrPath).ToLower()) -eq $false) {
 
