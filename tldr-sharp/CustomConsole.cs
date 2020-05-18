@@ -2,7 +2,7 @@ using System;
 
 namespace tldr_sharp
 {
-    public class CustomConsole
+    public static class CustomConsole
     {
         public static void WriteError(string error)
         {

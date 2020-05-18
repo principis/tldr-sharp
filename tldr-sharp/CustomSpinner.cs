@@ -6,11 +6,22 @@ namespace tldr_sharp
 {
     public sealed class CustomSpinner : Spinner
     {
-        public CustomSpinner(InlineTextBlock label = null, InlineTextBlock doneText = null)
+        public CustomSpinner()
         {
-            if (label != null) label.Text = label.Text.TrimEnd() + " ";
-            Label = label ?? Label;
-            DoneText = doneText ?? new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
+            DoneText = new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
+            Display();
+        }
+
+        public CustomSpinner(InlineTextBlock label) : this()
+        {
+            Label.Text = label.Text.TrimEnd() + " ";
+        }
+
+        public CustomSpinner(InlineTextBlock label, InlineTextBlock doneText)
+        {
+            label.Text = label.Text.TrimEnd();
+            Label = label;
+            DoneText = doneText;
             Display();
         }
 
@@ -47,7 +58,7 @@ namespace tldr_sharp
                 Console.Write("[ERROR]");
                 Console.ResetColor();
                 Console.Write($" {error}");
-                
+
                 spinner.Close();
                 Environment.Exit(1);
             }

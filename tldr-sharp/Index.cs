@@ -55,8 +55,8 @@ namespace tldr_sharp
             List<string> preferredLanguages = Index.GetEnvLanguages();
 
             foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
-                var lang = "en_US";
-                var isLocal = true;
+                string lang = "en_US";
+                bool isLocal = true;
                 if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 
                 if (lang != Program.DefaultLanguage &&
@@ -77,16 +77,17 @@ namespace tldr_sharp
             }
 
             transaction.Commit();
+            spinner.Close();
         }
 
-        private static List<Page> Query(string query, SqliteParameter[] parameters, string page = null)
+        private static List<Page> Query(string queryString, SqliteParameter[] parameters, string page = null)
         {
             using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
             conn.Open();
 
             string commandString = page == null
-                ? $"SELECT name, platform, lang, local FROM pages WHERE {query}"
-                : $"SELECT platform, lang, local FROM pages WHERE {query}";
+                ? $"SELECT name, platform, lang, local FROM pages WHERE {queryString}"
+                : $"SELECT platform, lang, local FROM pages WHERE {queryString}";
 
             using var command = new SqliteCommand(commandString, conn);
             command.Parameters.AddRange(parameters);
@@ -203,7 +204,9 @@ namespace tldr_sharp
                     try {
                         return languages.First(x => x.Substring(0, 2).Equals(lang));
                     }
-                    catch (InvalidOperationException) { }
+                    catch (InvalidOperationException) {
+                        // Catch exception when First does not find a page
+                    }
                 }
             }
 

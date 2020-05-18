@@ -1,9 +1,10 @@
 using System;
 using System.IO;
+using System.Net;
 
 namespace tldr_sharp
 {
-    internal readonly struct Page
+    internal readonly struct Page : IEquatable<Page>
     {
         public readonly string Name;
         public readonly string Platform;
@@ -20,6 +21,11 @@ namespace tldr_sharp
             Language = language;
             Local = local;
         }
+
+        public bool Equals(Page other) =>
+            (Name, Platform, Language, Local) == (other.Name, other.Platform, other.Language, Local);
+
+        public override int GetHashCode() => (Name, Platform, Language, Local).GetHashCode();
 
         public override string ToString()
         {
@@ -38,7 +44,8 @@ namespace tldr_sharp
                 Cache.DownloadPage(this);
             }
             catch (Exception e) {
-                throw new Exception($"An error has occurred downloading the requested page: {e.Message.Substring(7)}");
+                throw new WebException(
+                    $"An error has occurred downloading the requested page: {e.Message.Substring(7)}");
             }
         }
     }

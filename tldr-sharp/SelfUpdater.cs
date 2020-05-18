@@ -130,7 +130,7 @@ namespace tldr_sharp
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
 
-            using (var process = new Process() {StartInfo = startInfo}) {
+            using (var process = new Process {StartInfo = startInfo}) {
                 process.Start();
                 Console.Write(process.StandardOutput.ReadToEnd());
 

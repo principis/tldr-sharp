@@ -1,6 +1,6 @@
 namespace tldr_sharp
 {
-    internal struct Ansi
+    internal static class Ansi
     {
         internal const string Default = "\x1b[39m";
         internal const string Off = "\x1b[0m";

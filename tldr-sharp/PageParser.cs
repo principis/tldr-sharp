@@ -39,37 +39,37 @@ namespace tldr_sharp
 
         private static string ParseAnsiLine(string line, bool formatted = false)
         {
-            var sb = new StringBuilder(line);
+            var builder = new StringBuilder(line);
 
-            if (line.Contains("{{")) sb.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
+            if (line.Contains("{{")) builder.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
 
-            int urlStart = sb.IndexOf("<");
+            int urlStart = builder.IndexOf("<");
             if (urlStart != -1) {
-                int urlEnd = sb.IndexOf(">", urlStart);
+                int urlEnd = builder.IndexOf(">", urlStart);
                 if (urlEnd != -1)
-                    sb.Insert(urlStart, Ansi.BoldOff + Ansi.Underline).Insert(urlEnd, Ansi.Off);
+                    builder.Insert(urlStart, Ansi.BoldOff + Ansi.Underline).Insert(urlEnd, Ansi.Off);
             }
 
-            switch (sb[0]) {
+            switch (builder[0]) {
                 case '#':
-                    sb.Remove(0, 2)
+                    builder.Remove(0, 2)
                         .Insert(0, Ansi.Underline + Ansi.Bold)
                         .Append(Ansi.Off);
-                    if (formatted) sb.AppendLine();
+                    if (formatted) builder.AppendLine();
                     break;
                 case '>':
-                    sb.Remove(0, 2).Insert(0, Ansi.Bold).Append(Ansi.Off);
+                    builder.Remove(0, 2).Insert(0, Ansi.Bold).Append(Ansi.Off);
                     break;
                 case '-':
-                    if (formatted) sb.Insert(0, Environment.NewLine);
+                    if (formatted) builder.Insert(0, Environment.NewLine);
                     break;
                 case '`':
-                    sb.Remove(0, 1).Remove(sb.Length - 1, 1).Insert(0, Ansi.Red).Insert(0, formatted ? Spacing : "")
+                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red).Insert(0, formatted ? Spacing : "")
                         .Append(Ansi.Off);
                     break;
             }
 
-            return sb.ToString();
+            return builder.ToString();
         }
 
         /// <summary>

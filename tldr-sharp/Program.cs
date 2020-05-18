@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using Mono.Data.Sqlite;
 using Mono.Options;
 using NaturalSort.Extension;
@@ -30,7 +31,8 @@ namespace tldr_sharp
 
         private const string ClientSpecVersion = "1.2";
         internal const string DefaultLanguage = "en_US";
-        internal static bool AnsiSupport = true;
+        internal static readonly bool AnsiSupport;
+
         internal static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
 
         internal static readonly string Language = CultureInfo.CurrentCulture.Name.Replace('-', '_');
@@ -43,20 +45,24 @@ namespace tldr_sharp
         internal static readonly string UserAgent = Environment.GetEnvironmentVariable("TLDR_USER_AGENT") ??
                                                     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
 
+
+        static Program()
+        {
+            AnsiSupport = CheckWindowsAnsiSupport();
+        }
+
         public static int Main(string[] args)
         {
-            CheckWindowsAnsiSupport();
+            bool showHelp = false;
 
-            var showHelp = false;
-
-            var list = false;
-            var ignorePlatform = false;
+            bool list = false;
+            bool ignorePlatform = false;
 
             string language = null;
             string platform = null;
             string search = null;
 
-            var markdown = false;
+            bool markdown = false;
             string render = null;
 
             var options = new OptionSet {
@@ -166,33 +172,34 @@ namespace tldr_sharp
 
             if (search != null) return PageController.Search(search, language, platform);
 
-            var page = string.Empty;
+            StringBuilder builder = new StringBuilder();
             foreach (string arg in extra) {
                 if (arg.StartsWith("-")) {
-                    if (page == string.Empty) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
+                    if (builder.Length == 0) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
                     return 1;
                 }
 
-                page += $" {arg}";
+                builder.Append($" {arg}");
             }
+
+            string page = builder.ToString();
 
             return page.Trim().Length > 0 ? PageController.Print(page, language, platform, markdown) : 0;
         }
 
-        private static void CheckWindowsAnsiSupport()
+        private static bool CheckWindowsAnsiSupport()
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
+            if (Environment.OSVersion.Platform != PlatformID.Win32NT) return true;
 
             IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
             if (!GetConsoleMode(iStdOut, out uint outConsoleMode)) {
-                AnsiSupport = false;
+                return false;
             }
-            else {
-                outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
 
-                if (!SetConsoleMode(iStdOut, outConsoleMode)) AnsiSupport = false;
-            }
+            outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+
+            return SetConsoleMode(iStdOut, outConsoleMode);
         }
     }
 }

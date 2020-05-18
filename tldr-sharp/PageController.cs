@@ -91,7 +91,7 @@ namespace tldr_sharp
             try {
                 page = Find(results, languages, platform);
             }
-            catch (Exception) {
+            catch (ArgumentNullException) {
                 if (prefLanguage != null) {
                     Console.WriteLine("Page not found in the requested language.");
                     return 2;
@@ -101,7 +101,7 @@ namespace tldr_sharp
                     page = FindAlternative(results, languages);
                     if (platform != page.Platform && page.Platform != "common") altPlatform = page.Platform;
                 }
-                catch (Exception) {
+                catch (ArgumentNullException) {
                     return NotFound(pageName);
                 }
             }
@@ -129,17 +129,21 @@ namespace tldr_sharp
                 try {
                     return results.First(x => x.Platform == platform && x.Language == language);
                 }
-                catch (InvalidOperationException) { }
+                catch (InvalidOperationException) {
+                    // Catch exception when First does not find a page
+                }
             }
 
             foreach (string language in languages) {
                 try {
                     return results.First(x => x.Platform == "common" && x.Language == language);
                 }
-                catch (InvalidOperationException) { }
+                catch (InvalidOperationException) {
+                    // Catch exception when First does not find a page
+                }
             }
 
-            throw new Exception();
+            throw new ArgumentNullException();
         }
 
         private static Page FindAlternative(ICollection<Page> results, ICollection<string> languages)
@@ -154,7 +158,7 @@ namespace tldr_sharp
             if (!languages.Contains(Program.DefaultLanguage))
                 return results.First(x => x.Language.Equals(Program.DefaultLanguage));
 
-            throw new Exception();
+            throw new ArgumentNullException();
         }
 
         private static int NotFound(string page)
@@ -174,12 +178,12 @@ namespace tldr_sharp
 
             if (diffPlatform != null) {
                 if (Program.AnsiSupport) {
-                    Console.WriteLine("{0}{1}[WARNING] THIS PAGE IS FOR THE {2} PLATFORM!{3}{4}", Ansi.Red, Ansi.Bold,
-                        diffPlatform.ToUpper(), Ansi.Off, Environment.NewLine);
+                    Console.WriteLine("{0}{1}[WARN] This page is for the {2} platform!{3}{4}", Ansi.Red, Ansi.Bold,
+                        diffPlatform, Ansi.Off, Environment.NewLine);
                 }
                 else {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[WARNING] THIS PAGE IS FOR THE {0} PLATFORM!{1}", diffPlatform.ToUpper(),
+                    Console.WriteLine("[WARN] This page is for the {0} platform!{1}", diffPlatform,
                         Environment.NewLine);
                     Console.ForegroundColor = Program.DefaultColor;
                 }
