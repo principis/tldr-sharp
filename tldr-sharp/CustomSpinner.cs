@@ -16,6 +16,7 @@ namespace tldr_sharp
         {
             label.Text = label.Text.TrimEnd() + " ";
             Label = label;
+            DoneText = new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
             Display();
         }
 
