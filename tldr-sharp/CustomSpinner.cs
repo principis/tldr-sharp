@@ -12,14 +12,16 @@ namespace tldr_sharp
             Display();
         }
 
-        public CustomSpinner(InlineTextBlock label) : this()
+        public CustomSpinner(InlineTextBlock label)
         {
-            Label.Text = label.Text.TrimEnd() + " ";
+            label.Text = label.Text.TrimEnd() + " ";
+            Label = label;
+            Display();
         }
 
         public CustomSpinner(InlineTextBlock label, InlineTextBlock doneText)
         {
-            label.Text = label.Text.TrimEnd();
+            label.Text = label.Text.TrimEnd() + " ";
             Label = label;
             DoneText = doneText;
             Display();
@@ -27,7 +29,8 @@ namespace tldr_sharp
 
         public void Reset(InlineTextBlock label)
         {
-            Label = label.Text = label.Text.TrimEnd() + " ";
+            label.Text = label.Text.TrimEnd() + " ";
+            Label = label;
             DoneText = new InlineTextBlock("[Done]", ConsoleColor.DarkGreen);
             Display();
         }
