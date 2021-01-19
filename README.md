@@ -1,6 +1,6 @@
 # tldr-sharp
 
-[![Build Status](https://travis-ci.org/principis/tldr-sharp.svg?branch=master)](https://travis-ci.org/principis/tldr-sharp)
+[![Build Status](https://travis-ci.org/principis/tldr-sharp.svg?branch=main)](https://travis-ci.org/principis/tldr-sharp)
 
 A C# based, feature-rich command-line client for [tldr-pages](https://github.com/tldr-pages/tldr).
 
@@ -30,7 +30,7 @@ mkdir tldr
 tar xzf <version>.tar.gz -C tldr
 sudo mv tldr /usr/local/lib
 cd /usr/local/bin
-sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
+sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/main/tldr
 sudo chmod +x tldr
 ```
 
@@ -41,7 +41,7 @@ Open powershell as administrator
 
 Run the following command:
 ```ps
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/master/scripts/windows_install.ps1'))
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/windows_install.ps1'))
 ```
 Reopen powershell and run `tldr`.
 

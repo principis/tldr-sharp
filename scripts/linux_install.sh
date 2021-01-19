@@ -43,7 +43,7 @@ rm -rf "/tmp/tldr"
 
 # Download executable
 
-wget -q https://raw.githubusercontent.com/principis/tldr-sharp/master/tldr
+wget -q https://raw.githubusercontent.com/principis/tldr-sharp/main/tldr
 retval=$?
 
 if [ $retval != 0 ]; then
