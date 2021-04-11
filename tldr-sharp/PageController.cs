@@ -65,7 +65,7 @@ namespace tldr_sharp
         internal static int Print(string pageName, string prefLanguage = null, string platform = null,
             bool markdown = false)
         {
-            pageName = pageName.TrimStart().Replace(' ', '-');
+            pageName = pageName.ToLower().TrimStart().Replace(' ', '-');
 
             List<string> languages;
             if (prefLanguage == null) {
