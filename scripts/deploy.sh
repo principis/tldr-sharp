@@ -2,28 +2,25 @@
 
 set -e
 
-SCRIPT=$(realpath $0)
-SCRIPTPATH=$(dirname $SCRIPT)
+SCRIPT=$(realpath "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
 
-if ([ ! -z "$TRAVIS_TAG" ]) &&
+if [ ! -z "$TRAVIS_TAG" ] &&
 	[ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 
 	create_archives() {
 
-		cd $TARGET
+		cd "$TARGET"
 
 		# Windows archives
 		cp "${SCRIPTPATH}/windows/sqlite3${PLATFORM}.dll" sqlite3.dll
-		zip -r "../tldr-sharp_${TRAVIS_TAG#v}_windows${PLATFORM}.zip" *
+		zip -r "../tldr-sharp_windows${PLATFORM}.zip" ./*
 
 		# Linux archives
 		rm Mono.Data.Sqlite.dll sqlite3.dll || true # not necessary on linux
-		tar czf "../tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.tar.gz" *
+		tar czf "../tldr-sharp_linux${PLATFORM}.tar.gz" ./*
 
 		cd ..
-
-		# Linux install scripts
-		sed -e "s/VERSION_PLACEHOLDER/$TRAVIS_TAG/" -e "s/FILE_PLACEHOLDER/tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}/" ${SCRIPTPATH}/linux_install.sh >tldr-sharp_${TRAVIS_TAG#v}_linux${PLATFORM}.sh
 	}
 
 	build_deb() {
@@ -32,7 +29,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 		tempdir=$(mktemp -d 2>/dev/null || mktemp -d -t tmp)
 
 		mkdir -p "$tempdir/usr/lib/tldr-sharp"
-		cp -r $TARGET/* "$tempdir/usr/lib/tldr-sharp"
+		cp -r "$TARGET"/* "$tempdir/usr/lib/tldr-sharp"
 		chmod 755 "$tempdir/usr/lib/tldr-sharp/"*
 
 		mkdir -p "$tempdir/usr/bin"
@@ -45,7 +42,7 @@ if ([ ! -z "$TRAVIS_TAG" ]) &&
 
 		sed -i "s/VERSION_PLACEHOLDER/${TRAVIS_TAG#v}/g" "$tempdir/DEBIAN/control"
 
-		fakeroot dpkg-deb --build "$tempdir" "tldr-sharp_${TRAVIS_TAG#v}${PLATFORM}.deb"
+		fakeroot dpkg-deb --build "$tempdir" "tldr-sharp${PLATFORM}.deb"
 	}
 
 	cd tldr-sharp/bin

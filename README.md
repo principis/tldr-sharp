@@ -23,10 +23,10 @@ Install the [latest](https://github.com/principis/tldr-sharp/releases) Debian pa
 
 Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
 
-```
-wget https://github.com/principis/tldr-sharp/releases//latest/download/tldr-sharp_linux_x64.sh
-chmod +x linux_install_x64.sh
-./linux_install_x64.sh
+```sh
+wget https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/linux_install.sh
+chmod +x linux_install.sh
+sudo ./linux_install.sh
 ```
 
 #### Manual
@@ -36,7 +36,8 @@ Download and extract the latest [release](https://github.com/principis/tldr-shar
 ```sh
 mkdir tldr
 tar xzf <version>.tar.gz -C tldr
-sudo mv tldr /usr/local/lib
+sudo chown -R root:root tldr
+sudo mv tldr /usr/local/lib/
 cd /usr/local/bin
 sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/main/tldr
 sudo chmod +x tldr

@@ -14,6 +14,9 @@ namespace tldr_sharp
         private const string ApiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest";
         private const string UpdateUrl = "https://github.com/principis/tldr-sharp/releases/download/";
 
+        private const string ScriptUrl =
+            "https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/linux_install.sh";
+
         internal static void CheckSelfUpdate()
         {
             var spinner = new CustomSpinner("Checking for update");
@@ -61,8 +64,7 @@ namespace tldr_sharp
                 Console.WriteLine("Select desired method:");
                 Console.WriteLine("0\tx86 Debian package (.deb)");
                 Console.WriteLine("1\tx64 Debian package (.deb)");
-                Console.WriteLine("2\tx86 install script (.sh)");
-                Console.WriteLine("3\tx64 install script (.sh)");
+                Console.WriteLine("2\tinstall script (.sh)");
 
                 string option;
                 int optionNb;
@@ -82,9 +84,6 @@ namespace tldr_sharp
                         break;
                     case 2:
                         SelfUpdate(UpdateType.Script, remoteVersion);
-                        break;
-                    case 3:
-                        SelfUpdate(UpdateType.ScriptX64, remoteVersion);
                         break;
                 }
             }
@@ -123,7 +122,6 @@ namespace tldr_sharp
                     startInfo.Arguments = "-c \"sudo dpkg -i " + tmpPath + "\"";
                     break;
                 case UpdateType.Script:
-                case UpdateType.ScriptX64:
                     startInfo.Arguments = "-c \"bash " + tmpPath + "\"";
                     break;
                 default:
@@ -154,13 +152,12 @@ namespace tldr_sharp
 
         private static string GetUpdateUrl(UpdateType type, Version version)
         {
-            string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/" +
-                                 $"tldr-sharp_{version.Major}.{version.Minor}.{version.Build}";
+            string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/tldr-sharp";
+
             return type switch {
                 UpdateType.Debian => $"{downloadUrl}.deb",
                 UpdateType.DebianX64 => $"{downloadUrl}_x64.deb",
-                UpdateType.Script => $"{downloadUrl}_linux.sh",
-                UpdateType.ScriptX64 => $"{downloadUrl}_linux_x64.sh",
+                UpdateType.Script => ScriptUrl,
                 _ => null
             };
         }
@@ -169,8 +166,7 @@ namespace tldr_sharp
         {
             Debian,
             DebianX64,
-            Script,
-            ScriptX64
+            Script
         }
     }
 }

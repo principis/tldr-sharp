@@ -22,7 +22,6 @@ deploy:
     - tldr-sharp/bin/*.tar.gz
     - tldr-sharp/bin/*.zip
     - tldr-sharp/bin/*.deb
-    - tldr-sharp/bin/*.sh
   skip_cleanup: true
   on:
     tags: true
