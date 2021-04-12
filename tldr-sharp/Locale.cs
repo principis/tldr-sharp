@@ -9,7 +9,7 @@ namespace tldr_sharp
     {
         internal const string DefaultLanguage = "en";
         private static readonly string Language;
-        private static readonly string SetLanguage = Environment.GetEnvironmentVariable("TLDR_LANGUAGE");
+        private static readonly string ConfiguredLanguage;
 
         static Locale()
         {
@@ -19,6 +19,11 @@ namespace tldr_sharp
             }
 
             Language = language;
+
+            string configuredLanguage = Environment.GetEnvironmentVariable("TLDR_LANGUAGE");
+            ConfiguredLanguage = configuredLanguage != null && IsValidLanguageCode(configuredLanguage)
+                ? configuredLanguage
+                : null;
         }
 
         internal static string GetLanguageName(string code)
@@ -37,6 +42,25 @@ namespace tldr_sharp
 
                 return name ?? code;
             }
+        }
+
+        private static bool IsValidLanguageCode(string code)
+        {
+            string name;
+            try {
+                name = CultureInfo.GetCultureInfo(code.Replace('_', '-')).EnglishName;
+            }
+            catch (CultureNotFoundException) {
+                string language = TrimPosixLang(code);
+
+                name = language.Length switch {
+                    2 => Iso639.Language.FromPart1(language)?.Name,
+                    3 => Iso639.Language.FromPart2(language)?.Name ?? Iso639.Language.FromPart3(language)?.Name,
+                    _ => null
+                };
+            }
+
+            return name != null;
         }
 
         internal static List<string> GetPreferredLanguages()
@@ -68,8 +92,8 @@ namespace tldr_sharp
         {
             var languages = new List<string>();
 
-            if (SetLanguage != null) {
-                languages.Add(SetLanguage);
+            if (ConfiguredLanguage != null) {
+                languages.Add(ConfiguredLanguage);
             }
 
             if (Language == null) {
@@ -79,6 +103,7 @@ namespace tldr_sharp
             List<string> envs = Environment.GetEnvironmentVariable("LANGUAGE")
                 ?.Split(':')
                 .Where(x => !x.Equals(string.Empty))
+                .Where(IsValidLanguageCode)
                 .ToList();
             if (envs != null) {
                 languages.AddRange(envs);
@@ -108,7 +133,11 @@ namespace tldr_sharp
 
         internal static string GetPreferredLanguageOrDefault()
         {
-            if (Language == null && SetLanguage == null) {
+            if (ConfiguredLanguage != null) {
+                return ConfiguredLanguage;
+            }
+
+            if (Language == null) {
                 return DefaultLanguage;
             }
 
