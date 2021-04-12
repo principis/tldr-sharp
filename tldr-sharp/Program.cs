@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -120,10 +121,9 @@ namespace tldr_sharp
                 }, {
                     "v|version", "Show version information",
                     v => {
-                        Console.WriteLine("tldr-sharp " + Assembly.GetExecutingAssembly().GetName().Version.Major +
-                                          "." +
-                                          Assembly.GetExecutingAssembly().GetName().Version.Minor + "." +
-                                          Assembly.GetExecutingAssembly().GetName().Version.Build);
+                        string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)
+                            .ProductVersion;
+                        Console.WriteLine($"tldr-sharp {version}");
                         Console.WriteLine("tldr-pages client specification " + ClientSpecVersion);
                         Environment.Exit(0);
                     }
