@@ -26,7 +26,7 @@ namespace tldr_sharp
         private static extern IntPtr GetStdHandle(int nStdHandle);
 
 
-        private const string ClientSpecVersion = "1.2";
+        private const string ClientSpecVersion = "1.5";
         internal static readonly bool AnsiSupport;
 
         internal static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
