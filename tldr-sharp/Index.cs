@@ -72,8 +72,6 @@ namespace tldr_sharp
                     command.Parameters.AddWithValue("@local", isLocal);
                     command.ExecuteNonQuery();
                 }
-
-                if (lang != Locale.DefaultLanguage && !preferredLanguages.Contains(lang)) dir.Delete(true);
             }
 
             transaction.Commit();

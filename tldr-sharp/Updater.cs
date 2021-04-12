@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using SharpCompress.Common;
@@ -69,6 +70,32 @@ namespace tldr_sharp
             spinner.Dispose();
 
             Index.Create();
+
+            CleanupCache();
+        }
+
+        private static void CleanupCache()
+        {
+            var spinner = new CustomSpinner("Cleaning cache");
+
+            var cacheDir = new DirectoryInfo(Program.CachePath);
+
+            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
+                string lang = Locale.DefaultLanguage;
+                if (dir.Name.Contains(".")) {
+                    lang = dir.Name.Split('.')[1];
+                }
+
+                List<Page> pages = Index.QueryByLanguage(lang);
+
+                if (pages.Count > 0 && pages[0].Local) {
+                    continue;
+                }
+
+                dir.Delete(true);
+            }
+
+            spinner.Close();
         }
 
         private static void DownloadPages(string url, string tmpPath)
