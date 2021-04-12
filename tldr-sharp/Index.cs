@@ -52,14 +52,14 @@ namespace tldr_sharp
             // Add pages
             command.CommandText =
                 "INSERT INTO pages (name, platform, lang, local) VALUES(@name, @platform, @lang, @local)";
-            List<string> preferredLanguages = Index.GetEnvLanguages();
+            List<string> preferredLanguages = Locale.GetEnvLanguages();
 
             foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
-                string lang = "en_US";
+                string lang = Locale.DefaultLanguage;
                 bool isLocal = true;
                 if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 
-                if (lang != Program.DefaultLanguage &&
+                if (lang != Locale.DefaultLanguage &&
                     preferredLanguages.All(x => lang.Substring(0, 2) != x.Substring(0, 2)))
                     isLocal = false;
 
@@ -73,7 +73,7 @@ namespace tldr_sharp
                     command.ExecuteNonQuery();
                 }
 
-                if (lang != Program.DefaultLanguage && !preferredLanguages.Contains(lang)) dir.Delete(true);
+                if (lang != Locale.DefaultLanguage && !preferredLanguages.Contains(lang)) dir.Delete(true);
             }
 
             transaction.Commit();
@@ -96,9 +96,10 @@ namespace tldr_sharp
             var results = new List<Page>();
 
             while (reader.Read()) {
-                if (page == null)
+                if (page == null) {
                     results.Add(new Page(reader.GetString(0), reader.GetString(1), reader.GetString(2),
                         reader.GetBoolean(3)));
+                }
                 else {
                     results.Add(new Page(page, reader.GetString(0), reader.GetString(1),
                         reader.GetBoolean(2)));
@@ -112,7 +113,7 @@ namespace tldr_sharp
         {
             return Query("lang = @lang AND (platform = @platform OR platform = 'common')",
                 new[] {
-                    new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault()),
+                    new SqliteParameter("@lang", language ?? Locale.GetPreferredLanguageOrDefault()),
                     new SqliteParameter("@platform", platform ?? GetPlatform())
                 });
         }
@@ -127,7 +128,7 @@ namespace tldr_sharp
         internal static List<Page> QueryByLanguage(string language)
         {
             return Query("lang = @lang",
-                new[] {new SqliteParameter("@lang", language ?? GetPreferredLanguageOrDefault())});
+                new[] {new SqliteParameter("@lang", language ?? Locale.GetPreferredLanguageOrDefault())});
         }
 
         internal static string GetPlatform()
@@ -156,72 +157,24 @@ namespace tldr_sharp
             using SqliteDataReader reader = command.ExecuteReader();
 
             var platform = new SortedSet<string>();
-            while (reader.Read()) platform.Add(reader.GetString(0));
+            while (reader.Read()) {
+                platform.Add(reader.GetString(0));
+            }
 
             return platform;
         }
 
 
-        internal static List<string> GetPreferredLanguages()
-        {
-            var valid = new List<string>();
-            ICollection<string> languages = ListLanguages();
-            if (languages.Contains(Program.Language)) valid.Add(Program.Language);
-
-            Environment.GetEnvironmentVariable("LANGUAGE")
-                ?.Split(':')
-                .Where(x => !x.Equals(string.Empty))
-                .ToList().ForEach(delegate(string s) {
-                    valid.AddRange(languages.Where(l => l.Substring(0, 2).Equals(s)));
-                });
-
-            return valid;
-        }
-
-        private static List<string> GetEnvLanguages()
-        {
-            var languages = new List<string> {Program.Language};
-            List<string> envs = Environment.GetEnvironmentVariable("LANGUAGE")
-                ?.Split(':')
-                .Where(x => !x.Equals(string.Empty))
-                .ToList();
-            if (envs != null) languages.AddRange(envs);
-            return languages;
-        }
-
-
-        internal static string GetPreferredLanguageOrDefault()
-        {
-            ICollection<string> languages = ListLanguages();
-            if (languages.Contains(Program.Language)) return Program.Language;
-
-            IEnumerable<string> prefLanguages = Environment.GetEnvironmentVariable("LANGUAGE")
-                ?.Split(':')
-                .Where(x => !x.Equals(string.Empty));
-
-            if (prefLanguages != null) {
-                foreach (string lang in prefLanguages) {
-                    try {
-                        return languages.First(x => x.Substring(0, 2).Equals(lang));
-                    }
-                    catch (InvalidOperationException) {
-                        // Catch exception when First does not find a page
-                    }
-                }
-            }
-
-            return Program.DefaultLanguage;
-        }
-
-
-        internal static ICollection<string> ListLanguages()
+        internal static List<string> ListLanguages()
         {
             using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
             conn.Open();
             using var command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn);
             using SqliteDataReader reader = command.ExecuteReader();
             var languages = new List<string>();
-            while (reader.Read()) languages.Add(reader.GetString(0));
+            while (reader.Read()) {
+                languages.Add(reader.GetString(0));
+            }
 
             return languages;
         }

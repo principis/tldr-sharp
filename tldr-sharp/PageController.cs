@@ -69,15 +69,18 @@ namespace tldr_sharp
 
             List<string> languages;
             if (prefLanguage == null) {
-                languages = GetPreferredLanguages();
+                languages = Locale.GetPreferredLanguages();
+
                 if (languages.Count == 0) {
-                    Console.WriteLine("[INFO] None of the preferred languages found, using {0} instead.",
-                        Program.DefaultLanguage);
-                    languages.Add(Program.DefaultLanguage);
+                    Console.WriteLine(
+                        $"[INFO] None of the preferred languages found, using {Locale.GetLanguageName(Locale.DefaultLanguage)} instead. " +
+                        "See `tldr --list-languages` for a list of all available languages.");
+                    languages.Add(Locale.DefaultLanguage);
                 }
             }
-            else
+            else {
                 languages = new List<string> {prefLanguage};
+            }
 
             platform ??= GetPlatform();
             string altPlatform = null;
@@ -105,7 +108,9 @@ namespace tldr_sharp
             }
             catch (ArgumentNullException) {
                 if (prefLanguage != null) {
-                    Console.WriteLine("Page not found in the requested language.");
+                    Console.WriteLine(
+                        $"The `{pageName}` page could not be found in {Locale.GetLanguageName(prefLanguage)}. " +
+                        $"{Environment.NewLine}Feel free to translate it: https://github.com/tldr-pages/tldr/blob/master/CONTRIBUTING.md#translations");
                     return 2;
                 }
 
@@ -160,15 +165,19 @@ namespace tldr_sharp
 
         private static Page FindAlternative(ICollection<Page> results, ICollection<string> languages)
         {
+            if (!languages.Contains(Locale.DefaultLanguage)) {
+                try {
+                    return results.First(x => x.Language.Equals(Locale.DefaultLanguage));
+                }
+                catch (InvalidOperationException) { }
+            }
+
             foreach (string language in languages) {
                 try {
                     return results.First(x => x.Language.Equals(language));
                 }
                 catch (InvalidOperationException) { }
             }
-
-            if (!languages.Contains(Program.DefaultLanguage))
-                return results.First(x => x.Language.Equals(Program.DefaultLanguage));
 
             throw new ArgumentNullException();
         }

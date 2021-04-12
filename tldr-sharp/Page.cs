@@ -10,7 +10,7 @@ namespace tldr_sharp
         public readonly string Platform;
 
         public readonly string Language;
-        public string DirLanguage => Language == Program.DefaultLanguage ? string.Empty : $".{Language}";
+        public string DirLanguage => Language == Locale.DefaultLanguage ? string.Empty : $".{Language}";
 
         public readonly bool Local;
 

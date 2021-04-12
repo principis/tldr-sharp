@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mono.Data.Sqlite;
 using Mono.Options;
-using NaturalSort.Extension;
 using static tldr_sharp.Index;
 
 namespace tldr_sharp
@@ -30,12 +27,9 @@ namespace tldr_sharp
 
 
         private const string ClientSpecVersion = "1.2";
-        internal const string DefaultLanguage = "en_US";
         internal static readonly bool AnsiSupport;
 
         internal static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
-
-        internal static readonly string Language = CultureInfo.CurrentCulture.Name.Replace('-', '_');
 
         internal static readonly string CachePath =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
@@ -96,14 +90,11 @@ namespace tldr_sharp
                     la => {
                         Cache.Check();
                         Console.WriteLine(string.Join(Environment.NewLine,
-                            ListLanguages().Select(x => {
-                                try {
-                                    return x + ": " + CultureInfo.GetCultureInfo(x.Replace('_', '-')).EnglishName;
-                                }
-                                catch (CultureNotFoundException) {
-                                    return null;
-                                }
-                            }).Where(x => x != null)));
+                            ListLanguages().Select(lang => {
+                                string name = Locale.GetLanguageName(lang);
+
+                                return name == null ? lang : $"{lang}:\t{name}";
+                            })));
                     }
                 }, {
                     "L=|language=|lang=", "Specifies the preferred language",
