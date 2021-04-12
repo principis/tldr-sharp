@@ -7,16 +7,22 @@ A C# based, feature-rich command-line client for [tldr-pages](https://github.com
 ![tldr screenshot](screenshot.png)
 
 ## Requirements
-Because of needed TLS 1.2 support, Mono >= 4.8, built with TLS 1.2 support, is required. If your distro comes with an older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
 
-## Installing
+Because of needed TLS 1.2 support, Mono >= 4.8, built with TLS 1.2 support, is required. If your distro comes with an
+older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
 
-### Ubuntu/Debian
+## Installation
+
+### Linux
+
+#### Ubuntu/Debian
 
 Install the [latest](https://github.com/principis/tldr-sharp/releases) Debian package.
 
-### Linux
+#### Other
+
 Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
+
 ```
 wget https://github.com/principis/tldr-sharp/releases//latest/download/tldr-sharp_linux_x64.sh
 chmod +x linux_install_x64.sh
@@ -24,7 +30,9 @@ chmod +x linux_install_x64.sh
 ```
 
 #### Manual
+
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
+
 ```sh
 mkdir tldr
 tar xzf <version>.tar.gz -C tldr
@@ -35,21 +43,41 @@ sudo chmod +x tldr
 ```
 
 ### Windows
+
 _Note: Your antivirus may detect tldr-sharp as a virus._
 
-Open powershell as administrator
+It is recommended to use the new [Windows Terminal](https://aka.ms/terminal), so the highlighting works as expected.
 
-Run the following command:
+#### Installation via script
+
+* Open powershell as administrator
+* Run the following command:
 ```ps
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/windows_install.ps1'))
 ```
+
 Reopen powershell and run `tldr`.
 
-#### Manual
+#### Manual installation
 
-Extract the latest [release](https://github.com/principis/tldr-sharp/releases) to a folder of choice (for example `C:\ProgramData\tldr-sharp`), add it to the Path and reboot.
+* Download the latest [release](https://github.com/principis/tldr-sharp/releases)
+* Extract to a folder of choice, for example `C:\ProgramData\tldr-sharp`
+* Copy `tldr_sharp.exe` to `tldr.exe`
+* Copy `tldr_sharp.exe.config` to `tldr.exe.config`
+* Add it to the path
+    * Open Control Panel (old style)
+    * On the **System** page, click **Advanced system settings** on the left-hand side
+    * In the dialog window, click on the **Environment Variables** button
+    * In **User variables** select `Path` and click **Edit**
+    * In the popup, click **New** and add the path where you've installed tldr-sharp as
+      follows: `C:\ProgramData\tldr-sharp`
+* Reboot to make sure the Path is updated
+
+You can now use tldr-sharp by entering `tldr tar` in your favorite shell.
+
 
 ## Usage
+
 ```
 Usage: tldr command [options]
 Simplified and community-driven man pages
@@ -76,4 +104,5 @@ Simplified and community-driven man pages
 This project is licensed under the GPL license - see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
+
 Contributions are always welcome! Please open an issue first.
