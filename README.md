@@ -8,6 +8,16 @@ A C# based, feature-rich command-line client for [tldr-pages](https://github.com
 
 ## Requirements
 
+### Windows
+
+It probably just works, otherwise install
+[.Net Framework 4.6.1](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net461-web-installer)
+or newer.
+
+### Linux/macOS/Other
+
+- Mono >= 4.8 with TLS 1.2
+
 Because of needed TLS 1.2 support, Mono >= 4.8, built with TLS 1.2 support, is required. If your distro comes with an
 older version, please install the [latest stable](https://www.mono-project.com/download/stable/).
 
@@ -53,6 +63,7 @@ It is recommended to use the new [Windows Terminal](https://aka.ms/terminal), so
 
 * Open powershell as administrator
 * Run the following command:
+
 ```ps
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/windows_install.ps1'))
 ```
@@ -75,7 +86,6 @@ Reopen powershell and run `tldr`.
 * Reboot to make sure the Path is updated
 
 You can now use tldr-sharp by entering `tldr tar` in your favorite shell.
-
 
 ## Usage
 
