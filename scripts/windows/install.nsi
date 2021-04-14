@@ -9,7 +9,7 @@ CRCCheck on
 
 !define PRODUCT_NAME "tldr-sharp"
 !define PRODUCT_DESCRIPTION "tldr-sharp Installer"
-!define COPYRIGHT "Copyright © 2021 Arthur Bols"
+!define COPYRIGHT "Copyright © The tldr-sharp contributors"
 !define PRODUCT_VERSION "VERSION_PLACEHOLDER"
 !define SETUP_VERSION 1.0.0.0
 

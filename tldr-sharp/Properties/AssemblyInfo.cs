@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("tldr-sharp")]
-[assembly: AssemblyDescription("C# tldr client")]
+[assembly: AssemblyDescription("C# tldr-pages client")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("tldr-sharp")]
-[assembly: AssemblyCopyright("Copyright © Arthur Bols 2018 - 2019")]
+[assembly: AssemblyCopyright("Copyright © The tldr-sharp contributors 2018 - 2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
