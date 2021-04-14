@@ -59,6 +59,10 @@ _Note: Your antivirus may detect tldr-sharp as a virus._
 
 It is recommended to use the new [Windows Terminal](https://aka.ms/terminal), so the highlighting works as expected.
 
+#### Installer
+
+Run the [setup](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_setup.exe).
+
 #### Installation via script
 
 * Open powershell as administrator

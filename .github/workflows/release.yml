@@ -1,0 +1,71 @@
+name: Release CI
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  windows_setup:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ 'ubuntu-20.04' ]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install mono
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg ca-certificates
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+          echo "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+          sudo apt-get update
+          sudo apt-get install -y mono-devel nuget
+
+      - name: Build tldr-sharp
+        run: |
+          nuget restore
+          msbuild /target:Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
+
+      - name: Copy build output
+        run: |
+          cp -r tldr-sharp/bin/Release32 scripts/windows/release
+          cp scripts/windows/sqlite3.dll scripts/windows/release/
+          mv scripts/windows/release/tldr_sharp.exe scripts/windows/release/tldr.exe
+          mv scripts/windows/release/tldr_sharp.exe.config scripts/windows/release/tldr.exe.config
+
+      - name: Download EnVar plugin for NSIS
+        uses: carlosperate/download-file-action@v1.0.3
+        with:
+          file-url: https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
+          file-name: envar_plugin.zip
+          location: ${{ github.workspace }}
+
+      - name: Extract EnVar plugin
+        run: 7z x -o"${{ github.workspace }}/NSIS_Plugins" "${{ github.workspace }}/envar_plugin.zip"
+
+      - name: Install makensis
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nsis nsis-pluginapi
+
+      - name: Set Plugin permissions
+        run: sudo chown -R $(whoami) /usr/share/nsis/Plugins/
+
+      - name: Set tldr-sharp version
+        run: sed -i "s/VERSION_PLACEHOLDER/$(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-).0/g" "scripts/windows/install.nsi"
+
+      - name: Create nsis installer
+        uses: joncloud/makensis-action@v3.3
+        with:
+          script-file: scripts/windows/install.nsi
+          additional-plugin-paths: ${{ github.workspace }}/NSIS_Plugins/Plugins
+
+      - name: Add to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: scripts/windows/tldr-sharp_setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
