@@ -1,7 +1,5 @@
 # tldr-sharp
 
-[![Build Status](https://travis-ci.org/principis/tldr-sharp.svg?branch=main)](https://travis-ci.org/principis/tldr-sharp)
-
 A C# based, feature-rich command-line client for [tldr-pages](https://github.com/tldr-pages/tldr).
 
 ![tldr screenshot](screenshot.png)
@@ -27,11 +25,15 @@ older version, please install the [latest stable](https://www.mono-project.com/d
 
 #### Ubuntu/Debian
 
-Install the [latest](https://github.com/principis/tldr-sharp/releases) Debian package.
+Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp.deb) Debian package.
+
+#### Fedora
+
+Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp.rpm) RPM package.
 
 #### Other
 
-Download and execute the install script from the latest [release](https://github.com/principis/tldr-sharp/releases).
+Run the install script.
 
 ```sh
 wget https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/linux_install.sh

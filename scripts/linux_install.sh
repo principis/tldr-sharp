@@ -15,20 +15,10 @@ if [ -d "/tmp/tldr" ] || [ -f "/tmp/tldr" ]; then
     rm -rf "/tmp/tldr"
 fi
 
-ARCH=$(uname -m)
-if [ "$ARCH" == 'x86_64' ]; then
-  ARCH="_x64"
-elif [ "$ARCH" == 'i686' ]; then
-  ARCH=""
-else
-  echo "[ERROR] $ARCH is not supported!"
-  exit 1
-fi
-
 # Download release
 
 mkdir tldr
-wget -q "https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_linux${ARCH}.tar.gz" -O tldr-sharp.tar.gz
+wget -q "https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_linux.tar.gz" -O tldr-sharp.tar.gz
 retval=$?
 
 if [ $retval != 0 ]; then
