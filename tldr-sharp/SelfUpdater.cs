@@ -62,14 +62,14 @@ namespace tldr_sharp
                 if (updateQuestion.ReadAnswer() != YesNoAnswer.Yes) return;
 
                 Console.WriteLine("Select desired method:");
-                Console.WriteLine("0\tx86 Debian package (.deb)");
-                Console.WriteLine("1\tx64 Debian package (.deb)");
+                Console.WriteLine("0\tDebian package (.deb)");
+                Console.WriteLine("1\tRPM package (.rpm)");
                 Console.WriteLine("2\tinstall script (.sh)");
 
                 string option;
                 int optionNb;
                 do {
-                    Console.Write("Enter number 0..3: ");
+                    Console.Write("Enter number 0..2: ");
                     option = Console.ReadLine();
                 } while (!int.TryParse(option, out optionNb) || optionNb > 3 || optionNb < 0);
 
@@ -80,7 +80,7 @@ namespace tldr_sharp
                         SelfUpdate(UpdateType.Debian, remoteVersion);
                         break;
                     case 1:
-                        SelfUpdate(UpdateType.DebianX64, remoteVersion);
+                        SelfUpdate(UpdateType.Rpm, remoteVersion);
                         break;
                     case 2:
                         SelfUpdate(UpdateType.Script, remoteVersion);
@@ -88,7 +88,8 @@ namespace tldr_sharp
                 }
             }
             else {
-                Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion, UpdateUrl);
+                Console.WriteLine("Version {0} is available. Download it from {1}", remoteVersion,
+                    "https://github.com/principis/tldr-sharp/releases/");
             }
         }
 
@@ -113,20 +114,17 @@ namespace tldr_sharp
                 }
             }
 
-            var startInfo = new ProcessStartInfo
-                {FileName = "/bin/bash", UseShellExecute = false, RedirectStandardOutput = true};
-
-            switch (type) {
-                case UpdateType.Debian:
-                case UpdateType.DebianX64:
-                    startInfo.Arguments = "-c \"sudo dpkg -i " + tmpPath + "\"";
-                    break;
-                case UpdateType.Script:
-                    startInfo.Arguments = "-c \"bash " + tmpPath + "\"";
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
+            var startInfo = new ProcessStartInfo {
+                FileName = "/bin/bash",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                Arguments = type switch {
+                    UpdateType.Debian => "-c \"sudo dpkg -i " + tmpPath + "\"",
+                    UpdateType.Rpm => "-c \"sudo rpm -i " + tmpPath + "\"",
+                    UpdateType.Script => "-c \"bash " + tmpPath + "\"",
+                    _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+                }
+            };
 
             using (var process = new Process {StartInfo = startInfo}) {
                 process.Start();
@@ -156,7 +154,7 @@ namespace tldr_sharp
 
             return type switch {
                 UpdateType.Debian => $"{downloadUrl}.deb",
-                UpdateType.DebianX64 => $"{downloadUrl}_x64.deb",
+                UpdateType.Rpm => $"{downloadUrl}rpm",
                 UpdateType.Script => ScriptUrl,
                 _ => null
             };
@@ -165,7 +163,7 @@ namespace tldr_sharp
         private enum UpdateType
         {
             Debian,
-            DebianX64,
+            Rpm,
             Script
         }
     }
