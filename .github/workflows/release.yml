@@ -3,14 +3,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
+env:
+  VERSION: $(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-)
 
 jobs:
-  windows_setup:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ 'ubuntu-20.04' ]
+  build:
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -28,6 +26,40 @@ jobs:
         run: |
           nuget restore
           msbuild /target:Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
+      - run: bash scripts/test.sh
+          
+
+  create_setup:
+    runs-on: ubuntu-20.04
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Copy build output
         run: |
@@ -55,7 +87,7 @@ jobs:
         run: sudo chown -R $(whoami) /usr/share/nsis/Plugins/
 
       - name: Set tldr-sharp version
-        run: sed -i "s/VERSION_PLACEHOLDER/$(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-).0/g" "scripts/windows/install.nsi"
+        run: sed -i "s/VERSION_PLACEHOLDER/${{ env.VERSION }}.0/g" "scripts/windows/install.nsi"
 
       - name: Create nsis installer
         uses: joncloud/makensis-action@v3.3
@@ -67,5 +99,112 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: scripts/windows/tldr-sharp_setup.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create_deb:
+    runs-on: ubuntu-20.04
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Prepare directory
+        run: |
+          HOME_PATH=$(pwd)
+          pushd tldr-sharp/bin/Release
+          find . -not -name "*.exe" -type f -exec install -Dm 644 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
+          find . -name '*.exe' -type f -exec install -Dm 755 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
+          popd
+          install -Dm755 "scripts/debian/tldr-sharp" ".debpkg/usr/bin/tldr-sharp"
+          install -Dm644 "scripts/debian/control" ".debpkg/DEBIAN/control"
+          install -Dm755 "scripts/debian/postinst" ".debpkg/DEBIAN/postinst"
+          install -Dm755 "scripts/debian/prerm" ".debpkg/DEBIAN/prerm"
+          sed -i "s/VERSION_PLACEHOLDER/${{ env.VERSION }}/g" ".debpkg/DEBIAN/control"
+
+      - name: Build Debian package
+        run: fakeroot dpkg-deb --build ".debpkg" "tldr-sharp.deb"
+
+      - name: Add to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: tldr-sharp.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create_rpm:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Prepare directory
+        run: |
+          mkdir SOURCES SPECS "tldr-sharp-${{ env.VERSION }}"
+          sed "s/VERSION_PLACEHOLDER/${{ env.VERSION }}/g" "scripts/rpm/tldr-sharp.spec" > SPECS/tldr-sharp.spec
+          cp -r tldr-sharp/ scripts/ tldr-sharp.sln "tldr-sharp-${{ env.VERSION }}/"
+          tar czf SOURCES/tldr-sharp-${{ env.VERSION }}.tar.gz "tldr-sharp-${{ env.VERSION }}"
+
+      - name: Build RPM package
+        id: rpm
+        uses: ./.github/actions/rpmbuild
+        with:
+          spec_file: SPECS/tldr-sharp.spec
+          sources_dir: SOURCES
+
+      - name: Prepare rpm release
+        run: |
+          find ${{ steps.rpm.outputs.rpm_dir_path }} -name "*.rpm" | head -n 1 | xargs -I '{}' cp '{}' tldr-sharp.rpm
+
+      - name: Add to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: tldr-sharp.rpm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create_archives:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: tldr-sharp/bin/
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+      - name: Create Linux archive
+        run: |
+          tar czf tldr-sharp_linux.tar.gz -C tldr-sharp/bin/Release/ .
+
+      - name: Create Windows archive
+        run: |
+          cp scripts/windows/sqlite3.dll tldr-sharp/bin/Release/
+          pushd tldr-sharp/bin/Release/
+          zip -r ../../../tldr-sharp_windows.zip .
+          popd
+
+      - name: Add to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            tldr-sharp_linux.tar.gz
+            tldr-sharp_windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
