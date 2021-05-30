@@ -154,7 +154,7 @@ namespace tldr_sharp
 
             return type switch {
                 UpdateType.Debian => $"{downloadUrl}.deb",
-                UpdateType.Rpm => $"{downloadUrl}rpm",
+                UpdateType.Rpm => $"{downloadUrl}.rpm",
                 UpdateType.Script => ScriptUrl,
                 _ => null
             };
