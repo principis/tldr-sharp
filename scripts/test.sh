@@ -1,6 +1,6 @@
 #! /bin/bash
  set -x
-cd tldr-sharp/bin/Release
+cd tldr-sharp/bin/Release/net461
  
 chmod +x tldr_sharp.exe
 

@@ -25,7 +25,7 @@ jobs:
       - name: Build tldr-sharp
         run: |
           nuget restore
-          msbuild /target:Release tldr-sharp.sln /p:AllowedReferenceRelatedFileExtensions=none
+          msbuild tldr-sharp -t:Rebuild -p:TargetFrameworks=net461 -p:Configuration=Release -p:AllowedReferenceRelatedFileExtensions=none
 
       - name: Cache Build
         uses: actions/cache@v2
@@ -63,10 +63,10 @@ jobs:
 
       - name: Copy build output
         run: |
-          cp -r tldr-sharp/bin/Release32 scripts/windows/release
+          cp -r tldr-sharp/bin/Release/net461 scripts/windows/release
           cp scripts/windows/sqlite3.dll scripts/windows/release/
-          mv scripts/windows/release/tldr_sharp.exe scripts/windows/release/tldr.exe
-          mv scripts/windows/release/tldr_sharp.exe.config scripts/windows/release/tldr.exe.config
+          mv scripts/windows/release/net461/tldr-sharp.exe scripts/windows/release/tldr.exe
+          mv scripts/windows/release/net461/tldr-sharp.exe.config scripts/windows/release/tldr.exe.config
 
       - name: Download EnVar plugin for NSIS
         uses: carlosperate/download-file-action@v1.0.3
@@ -118,7 +118,7 @@ jobs:
       - name: Prepare directory
         run: |
           HOME_PATH=$(pwd)
-          pushd tldr-sharp/bin/Release
+          pushd tldr-sharp/bin/Release/net461
           find . -not -name "*.exe" -type f -exec install -Dm 644 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
           find . -name '*.exe' -type f -exec install -Dm 755 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
           popd
@@ -138,44 +138,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  create_rpm:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache Build
-        uses: actions/cache@v2
-        with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
-
-      - name: Prepare directory
-        run: |
-          mkdir SOURCES SPECS "tldr-sharp-${{ env.VERSION }}"
-          sed "s/VERSION_PLACEHOLDER/${{ env.VERSION }}/g" "scripts/rpm/tldr-sharp.spec" > SPECS/tldr-sharp.spec
-          cp -r tldr-sharp/ scripts/ tldr-sharp.sln "tldr-sharp-${{ env.VERSION }}/"
-          tar czf SOURCES/tldr-sharp-${{ env.VERSION }}.tar.gz "tldr-sharp-${{ env.VERSION }}"
-
-      - name: Build RPM package
-        id: rpm
-        uses: ./.github/actions/rpmbuild
-        with:
-          spec_file: SPECS/tldr-sharp.spec
-          sources_dir: SOURCES
-
-      - name: Prepare rpm release
-        run: |
-          find ${{ steps.rpm.outputs.rpm_dir_path }} -name "*.rpm" | head -n 1 | xargs -I '{}' cp '{}' tldr-sharp.rpm
-
-      - name: Add to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: tldr-sharp.rpm
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   create_archives:
     runs-on: ubuntu-latest
     needs: test
@@ -191,12 +153,12 @@ jobs:
 
       - name: Create Linux archive
         run: |
-          tar czf tldr-sharp_linux.tar.gz -C tldr-sharp/bin/Release/ .
+          tar czf tldr-sharp_linux.tar.gz -C tldr-sharp/bin/Release/net461/ .
 
       - name: Create Windows archive
         run: |
-          cp scripts/windows/sqlite3.dll tldr-sharp/bin/Release/
-          pushd tldr-sharp/bin/Release/
+          cp scripts/windows/sqlite3.dll tldr-sharp/bin/Release/net461/
+          pushd tldr-sharp/bin/Release/net461/
           zip -r ../../../tldr-sharp_windows.zip .
           popd
 
