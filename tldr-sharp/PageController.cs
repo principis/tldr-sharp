@@ -58,8 +58,10 @@ namespace tldr_sharp
             List<Page> pages =
                 ignorePlatform ? QueryByLanguage(language) : QueryByLanguageAndPlatform(language, platform);
 
-            Console.WriteLine(string.Join(Environment.NewLine,
-                pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())));
+            foreach (Page page in pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort()))
+            {
+                Console.WriteLine(page);
+            }
         }
 
         internal static int Print(string pageName, string prefLanguage = null, string platform = null,

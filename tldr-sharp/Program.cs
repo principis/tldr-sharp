@@ -48,6 +48,19 @@ namespace tldr_sharp
 
         public static int Main(string[] args)
         {
+            try
+            {
+                return doMain(args);
+            }
+            catch (IOException)
+            {
+                // TODO: Implement using UnixSignal
+                return 1;
+            }
+        }
+
+        private static int doMain(string[] args)
+        {
             bool showHelp = false;
 
             bool list = false;
