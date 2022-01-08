@@ -28,8 +28,13 @@ older version, please install the [latest stable](https://www.mono-project.com/d
 Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp.deb) Debian package.
 
 #### Fedora
+tldr-sharp is available in [COPR](https://copr.fedorainfracloud.org/coprs/principis/tldr-sharp/)
 
-Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp.rpm) RPM package.
+```sh
+sudo dnf copr enable principis/howdy
+sudo dnf --refresh install tldr-sharp
+
+``
 
 #### Other
 
