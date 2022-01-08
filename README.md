@@ -85,8 +85,8 @@ Reopen powershell and run `tldr`.
 
 * Download the latest [release](https://github.com/principis/tldr-sharp/releases)
 * Extract to a folder of choice, for example `C:\ProgramData\tldr-sharp`
-* Copy `tldr_sharp.exe` to `tldr.exe`
-* Copy `tldr_sharp.exe.config` to `tldr.exe.config`
+* Copy `tldr-sharp.exe` to `tldr.exe`
+* Copy `tldr-sharp.exe.config` to `tldr.exe.config`
 * Add it to the path
     * Open Control Panel (old style)
     * On the **System** page, click **Advanced system settings** on the left-hand side

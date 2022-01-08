@@ -64,11 +64,11 @@ Copy-Item -Path "$tempDir\*" -Destination $tldrPath
 Remove-Item -Path $tempDir -Recurse -Force
 
 if (([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr_sharp.exe" -Path "$tldrPath/tldr.exe"
-    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr_sharp.exe.config" -Path "$tldrPath/tldr.exe.config"
+    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr-sharp.exe" -Path "$tldrPath/tldr.exe"
+    New-Item -ItemType SymbolicLink -Target "$tldrPath\tldr-sharp.exe.config" -Path "$tldrPath/tldr.exe.config"
 } else {
-    Copy-Item -Path "$tldrPath\tldr_sharp.exe" -Destination "$tldrPath\tldr.exe"
-    Copy-Item -Path "$tldrPath\tldr_sharp.exe.config" -Destination "$tldrPath\tldr.exe.config"
+    Copy-Item -Path "$tldrPath\tldr-sharp.exe" -Destination "$tldrPath\tldr.exe"
+    Copy-Item -Path "$tldrPath\tldr-sharp.exe.config" -Destination "$tldrPath\tldr.exe.config"
 }
 
 if ($($env:Path).ToLower().Contains($($tldrPath).ToLower()) -eq $false) {

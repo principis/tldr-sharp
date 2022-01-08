@@ -4,7 +4,7 @@ on:
     tags:
       - 'v*.*.*'
 env:
-  VERSION: $(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-)
+  RELEASE_VERSION: $(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-)
 
 jobs:
   build:
@@ -24,8 +24,8 @@ jobs:
 
       - name: Build tldr-sharp
         run: |
-          nuget restore
-          msbuild tldr-sharp -t:Rebuild -p:TargetFrameworks=net461 -p:Configuration=Release -p:AllowedReferenceRelatedFileExtensions=none
+          nuget restore tldr-sharp.sln
+          msbuild tldr-sharp.sln -t:Rebuild -p:TargetFrameworks=net461 -p:Configuration=Release -p:AllowedReferenceRelatedFileExtensions=none
 
       - name: Cache Build
         uses: actions/cache@v2
@@ -65,8 +65,8 @@ jobs:
         run: |
           cp -r tldr-sharp/bin/Release/net461 scripts/windows/release
           cp scripts/windows/sqlite3.dll scripts/windows/release/
-          mv scripts/windows/release/net461/tldr-sharp.exe scripts/windows/release/tldr.exe
-          mv scripts/windows/release/net461/tldr-sharp.exe.config scripts/windows/release/tldr.exe.config
+          mv scripts/windows/release/tldr-sharp.exe scripts/windows/release/tldr.exe
+          mv scripts/windows/release/tldr-sharp.exe.config scripts/windows/release/tldr.exe.config
 
       - name: Download EnVar plugin for NSIS
         uses: carlosperate/download-file-action@v1.0.3
@@ -87,7 +87,7 @@ jobs:
         run: sudo chown -R $(whoami) /usr/share/nsis/Plugins/
 
       - name: Set tldr-sharp version
-        run: sed -i "s/VERSION_PLACEHOLDER/${{ env.VERSION }}.0/g" "scripts/windows/install.nsi"
+        run: sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}.0/g" "scripts/windows/install.nsi"
 
       - name: Create nsis installer
         uses: joncloud/makensis-action@v3.3
@@ -126,7 +126,7 @@ jobs:
           install -Dm644 "scripts/debian/control" ".debpkg/DEBIAN/control"
           install -Dm755 "scripts/debian/postinst" ".debpkg/DEBIAN/postinst"
           install -Dm755 "scripts/debian/prerm" ".debpkg/DEBIAN/prerm"
-          sed -i "s/VERSION_PLACEHOLDER/${{ env.VERSION }}/g" ".debpkg/DEBIAN/control"
+          sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}/g" ".debpkg/DEBIAN/control"
 
       - name: Build Debian package
         run: fakeroot dpkg-deb --build ".debpkg" "tldr-sharp.deb"

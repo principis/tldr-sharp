@@ -1,2 +1,2 @@
 #!/bin/sh
-/usr/bin/mono /usr/local/lib/tldr/tldr_sharp.exe "$@"
+/usr/bin/mono /usr/local/lib/tldr/tldr-sharp.exe "$@"
