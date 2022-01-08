@@ -34,7 +34,7 @@ tldr-sharp is available in [COPR](https://copr.fedorainfracloud.org/coprs/princi
 sudo dnf copr enable principis/howdy
 sudo dnf --refresh install tldr-sharp
 
-``
+```
 
 #### Other
 
