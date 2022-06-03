@@ -31,9 +31,8 @@ Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/dow
 tldr-sharp is available in [COPR](https://copr.fedorainfracloud.org/coprs/principis/tldr-sharp/)
 
 ```sh
-sudo dnf copr enable principis/howdy
+sudo dnf copr enable principis/tldr-sharp
 sudo dnf --refresh install tldr-sharp
-
 ```
 
 #### Other
