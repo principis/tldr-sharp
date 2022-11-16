@@ -134,9 +134,8 @@ namespace tldr_sharp
                 }, {
                     "v|version", "Show version information",
                     v => {
-                        string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)
-                            .ProductVersion;
-                        Console.WriteLine($"tldr-sharp {version}");
+                        FileVersionInfo version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
+                        Console.WriteLine($"tldr-sharp {version.ProductMajorPart}.{version.ProductMinorPart}.{version.ProductBuildPart}");
                         Console.WriteLine("tldr-pages client specification " + ClientSpecVersion);
                         Environment.Exit(0);
                     }

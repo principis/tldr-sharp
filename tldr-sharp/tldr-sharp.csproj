@@ -4,10 +4,21 @@
         <OutputType>Exe</OutputType>
         <LangVersion>8</LangVersion>
         <IsPackable>false</IsPackable>
-        <AssemblyVersion>2.6.1</AssemblyVersion>
-        <FileVersion>2.6.1</FileVersion>
-        <Company />
         <TargetFrameworks>net461;net471;net48</TargetFrameworks>
+    </PropertyGroup>
+
+    <!-- Set the Product and Version info -->
+    <PropertyGroup>
+        <AssemblyVersion>2.6.3</AssemblyVersion>
+        <Authors>The tldr-sharp contributors</Authors>
+        <Company>tldr-sharp</Company>
+        <Product>tldr-sharp</Product>
+        <NeutralLanguage>en</NeutralLanguage>
+        <Description>C# tldr-pages client</Description>
+        <Copyright>Copyright (C) 2022 The tldr-sharp contributors.</Copyright>
+        <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+        <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
