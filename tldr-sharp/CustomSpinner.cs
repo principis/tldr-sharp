@@ -1,6 +1,6 @@
 using System;
-using DustInTheWind.ConsoleTools;
-using DustInTheWind.ConsoleTools.Spinners;
+using DustInTheWind.ConsoleTools.Controls;
+using DustInTheWind.ConsoleTools.Controls.Spinners;
 
 namespace tldr_sharp
 {

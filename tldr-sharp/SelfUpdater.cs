@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using DustInTheWind.ConsoleTools.InputControls;
+using DustInTheWind.ConsoleTools.Controls.InputControls;
 
 namespace tldr_sharp
 {
