@@ -1,5 +1,8 @@
 #compdef tldr-sharp
 
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
 _tldr_sharp() {
   local -a platforms
   platforms=(linux osx sunos windows)

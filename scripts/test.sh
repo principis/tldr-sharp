@@ -1,5 +1,9 @@
 #! /bin/bash
- set -x
+
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+set -x
 cd tldr-sharp/bin/Release/net461
  
 chmod +x tldr-sharp.exe

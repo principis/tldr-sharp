@@ -1,5 +1,8 @@
 # bash completion for tldr-sharp
 
+# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
 _tldr_sharp() 
 {
         pages=$(tldr -a)

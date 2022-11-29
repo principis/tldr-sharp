@@ -1,3 +1,9 @@
+/*
+    SPDX-FileCopyrightText: 2019 Arthur Bols <arthur@bols.dev>
+
+    SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
 namespace tldr_sharp
 {
     internal static class Ansi

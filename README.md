@@ -122,7 +122,10 @@ Simplified and community-driven man pages
 
 ## License
 
-This project is licensed under the GPL license - see the [LICENSE](LICENSE) file for details.
+* This project is licensed under GPL-3.0-or-later.
+* Some configuration and scripts are licensed under CC0-1.0.
+
+For more accurate information, check the individual files.
 
 ## Contributing
 

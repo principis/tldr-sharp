@@ -1,4 +1,7 @@
-﻿Write-Output "[INFO] Installing tldr-sharp"
+﻿# SPDX-FileCopyrightText: None
+# SPDX-License-Identifier: CC0-1.0
+
+Write-Output "[INFO] Installing tldr-sharp"
 
 if ($PSVersionTable.PSVersion.Major -lt 5) {
     throw "Powershell v5 or newer is required."

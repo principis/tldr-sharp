@@ -1,3 +1,9 @@
+/*
+    SPDX-FileCopyrightText: 2021 Arthur Bols <arthur@bols.dev>
+
+    SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
