@@ -118,7 +118,7 @@ namespace tldr_sharp
                 if (prefLanguage != null) {
                     Console.WriteLine(
                         $"The `{pageName}` page could not be found in {Locale.GetLanguageName(prefLanguage)}. " +
-                        $"{Environment.NewLine}Feel free to translate it: https://github.com/tldr-pages/tldr/blob/master/CONTRIBUTING.md#translations");
+                        $"{Environment.NewLine}Feel free to translate it: https://github.com/tldr-pages/tldr/blob/main/CONTRIBUTING.md#translations");
                     return 2;
                 }
 
