@@ -18,7 +18,7 @@ namespace tldr_sharp
         private const string Remote = "https://tldr.sh/assets/tldr.zip";
 
         private const string AlternativeRemote =
-            "https://github.com/tldr-pages/tldr-pages.github.io/raw/master/assets/tldr.zip";
+            "https://github.com/tldr-pages/tldr-pages.github.io/raw/main/assets/tldr.zip";
 
         internal static void Update()
         {

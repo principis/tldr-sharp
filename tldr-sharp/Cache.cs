@@ -14,7 +14,7 @@ namespace tldr_sharp
 {
     internal static class Cache
     {
-        private const string Remote = "https://raw.githubusercontent.com/tldr-pages/tldr/master/pages";
+        private const string Remote = "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages";
 
         internal static void Check()
         {
