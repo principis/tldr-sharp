@@ -33,7 +33,7 @@
         <PackageReference Include="Mono.Options" Version="6.12.0.148" />
         <PackageReference Include="Mono.Posix-4.5" Version="4.5.0" />
         <PackageReference Include="NaturalSort.Extension" Version="4.0.0" />
-        <PackageReference Include="SharpCompress" Version="0.32.2" />
+        <PackageReference Include="SharpCompress" Version="0.33.0" />
     </ItemGroup>
 
 </Project>
