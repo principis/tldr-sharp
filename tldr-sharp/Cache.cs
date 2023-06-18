@@ -14,11 +14,9 @@ namespace tldr_sharp
 {
     internal static class Cache
     {
-        private const string Remote = "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages";
-
         internal static void Check()
         {
-            if (File.Exists(Program.DbPath)) return;
+            if (File.Exists(Config.DbPath)) return;
 
             CustomConsole.WriteWarning("Database not found.");
             Updater.Update();
@@ -26,9 +24,9 @@ namespace tldr_sharp
 
         internal static void Clear()
         {
-            if (File.Exists(Program.CachePath)) File.Delete(Program.CachePath);
+            if (File.Exists(Config.CachePath)) File.Delete(Config.CachePath);
 
-            var cacheDir = new DirectoryInfo(Program.CachePath);
+            var cacheDir = new DirectoryInfo(Config.CachePath);
             if (cacheDir.Exists) cacheDir.Delete(true);
             cacheDir.Create();
         }
@@ -39,10 +37,10 @@ namespace tldr_sharp
             Directory.CreateDirectory(pageFile.DirectoryName ?? throw new ArgumentException());
 
             using (var client = new WebClient()) {
-                client.Headers.Add("user-agent", Program.UserAgent);
+                client.Headers.Add("user-agent", Config.UserAgent);
 
                 string language = page.DirLanguage;
-                string data = client.DownloadString(address: $"{Remote}{language}/{page.Platform}/{page.Name}.md");
+                string data = client.DownloadString(address: $"{Config.RemoteUrl}{language}/{page.Platform}/{page.Name}.md");
 
                 using StreamWriter sw = pageFile.CreateText();
                 sw.WriteLine(data);
@@ -53,7 +51,7 @@ namespace tldr_sharp
 
         internal static DateTime LastUpdate()
         {
-            using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
+            using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
 
             using var command = new SqliteCommand("SELECT value FROM config WHERE parameter = @parameter", conn);

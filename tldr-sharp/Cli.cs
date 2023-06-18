@@ -16,7 +16,7 @@ namespace tldr_sharp
 {
     public class Cli
     {
-        private OptionSet _optionSet;
+        private OptionSet? _optionSet;
 
 
         public Settings ParseArgs(string[] args)
@@ -89,7 +89,7 @@ namespace tldr_sharp
                     {
                         FileVersionInfo version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
                         Console.WriteLine($"tldr-sharp {version.ProductMajorPart}.{version.ProductMinorPart}.{version.ProductBuildPart}");
-                        Console.WriteLine("tldr-pages client specification " + Program.ClientSpecVersion);
+                        Console.WriteLine("tldr-pages client specification " + Config.ClientSpecification);
                         Console.WriteLine(version.LegalCopyright);
                         Console.WriteLine(@"License GPLv3+: GNU GPL version 3 or later <https://www.gnu.org/licenses/gpl-3.0.html>.
 This is free software: you are free to change and redistribute it.
@@ -107,7 +107,7 @@ There is NO WARRANTY, to the extent permitted by law.");
 
         public void WriteHelp(TextWriter o)
         {
-            _optionSet.WriteOptionDescriptions(o);
+            _optionSet?.WriteOptionDescriptions(o);
         }
 
         public class Settings

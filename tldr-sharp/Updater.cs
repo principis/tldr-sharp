@@ -15,11 +15,6 @@ namespace tldr_sharp
 {
     internal static class Updater
     {
-        private const string Remote = "https://tldr.sh/assets/tldr.zip";
-
-        private const string AlternativeRemote =
-            "https://github.com/tldr-pages/tldr-pages.github.io/raw/main/assets/tldr.zip";
-
         internal static void Update()
         {
             var spinner = new CustomSpinner("Updating cache");
@@ -29,11 +24,11 @@ namespace tldr_sharp
             if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
 
             try {
-                DownloadPages(Remote, tmpPath);
+                DownloadPages(Config.ArchiveRemote, tmpPath);
             }
             catch (WebException eRemote) {
                 try {
-                    DownloadPages(AlternativeRemote, tmpPath);
+                    DownloadPages(Config.ArchiveAlternativeRemote, tmpPath);
                 }
                 catch (WebException eAlternative) {
                     CustomConsole.WriteError(eAlternative.Message);
@@ -65,7 +60,7 @@ namespace tldr_sharp
                 using IReader reader = ReaderFactory.Open(stream);
                 while (reader.MoveToNextEntry()) {
                     if (!reader.Entry.IsDirectory)
-                        reader.WriteEntryToDirectory(Program.CachePath, new ExtractionOptions {
+                        reader.WriteEntryToDirectory(Config.CachePath, new ExtractionOptions {
                             ExtractFullPath = true,
                             Overwrite = true
                         });
@@ -84,7 +79,7 @@ namespace tldr_sharp
         {
             var spinner = new CustomSpinner("Cleaning cache");
 
-            var cacheDir = new DirectoryInfo(Program.CachePath);
+            var cacheDir = new DirectoryInfo(Config.CachePath);
 
             foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
                 string lang = Locale.DefaultLanguage;
@@ -107,7 +102,7 @@ namespace tldr_sharp
         private static void DownloadPages(string url, string tmpPath)
         {
             using var client = new WebClient();
-            client.Headers.Add("user-agent", Program.UserAgent);
+            client.Headers.Add("user-agent", Config.UserAgent);
 
             if (Environment.GetEnvironmentVariable("TLDR_COOKIE") != null)
                 client.Headers.Add(HttpRequestHeader.Cookie, Environment.GetEnvironmentVariable("TLDR_COOKIE"));

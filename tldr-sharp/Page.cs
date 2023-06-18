@@ -40,7 +40,7 @@ namespace tldr_sharp
 
         internal string GetPath()
         {
-            return Path.Combine(Program.CachePath,
+            return Path.Combine(Config.CachePath,
                 "pages" + DirLanguage, Platform, $"{Name}.md");
         }
 

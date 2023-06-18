@@ -20,11 +20,11 @@ namespace tldr_sharp
         {
             using var spinner = new CustomSpinner("Creating index");
 
-            var cacheDir = new DirectoryInfo(Program.CachePath);
+            var cacheDir = new DirectoryInfo(Config.CachePath);
 
-            SqliteConnection.CreateFile(Program.DbPath);
+            SqliteConnection.CreateFile(Config.DbPath);
 
-            using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
+            using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
 
             using var command = new SqliteCommand(conn);
@@ -86,7 +86,7 @@ namespace tldr_sharp
 
         private static List<Page> Query(string queryString, SqliteParameter[] parameters, string page = null)
         {
-            using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
+            using var conn = new SqliteConnection($"Data Source={Config.DbPath};");
             conn.Open();
 
             string commandString = page == null
@@ -154,7 +154,7 @@ namespace tldr_sharp
 
         internal static IEnumerable<string> ListPlatform()
         {
-            using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
+            using var conn = new SqliteConnection($"Data Source={Config.DbPath};");
             conn.Open();
 
             using var command = new SqliteCommand("SELECT DISTINCT platform FROM pages", conn);
@@ -171,7 +171,7 @@ namespace tldr_sharp
 
         internal static List<string> ListLanguages()
         {
-            using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
+            using var conn = new SqliteConnection($"Data Source={Config.DbPath};");
             conn.Open();
             using var command = new SqliteCommand("SELECT DISTINCT lang FROM pages", conn);
             using SqliteDataReader reader = command.ExecuteReader();
@@ -186,7 +186,7 @@ namespace tldr_sharp
 
         internal static bool CheckLanguage(string language)
         {
-            using var conn = new SqliteConnection($"Data Source={Program.DbPath};");
+            using var conn = new SqliteConnection($"Data Source={Config.DbPath};");
             conn.Open();
             using var command = new SqliteCommand("SELECT 1 FROM pages WHERE lang = @language", conn);
             command.Parameters.Add(new SqliteParameter("@language", language));
@@ -197,7 +197,7 @@ namespace tldr_sharp
 
         internal static void SetPageAsDownloaded(Page page)
         {
-            using var conn = new SqliteConnection("Data Source=" + Program.DbPath + ";");
+            using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
             using SqliteCommand command = conn.CreateCommand();
             command.CommandText =

@@ -15,7 +15,7 @@ namespace tldr_sharp
 
         internal static string ParseLine(string line, bool formatted = false)
         {
-            return Program.AnsiSupport ? ParseAnsiLine(line, formatted) : ParsePlainLine(line, formatted);
+            return Config.AnsiSupport ? ParseAnsiLine(line, formatted) : ParsePlainLine(line, formatted);
         }
 
         private static string ParsePlainLine(string line, bool formatted = false)

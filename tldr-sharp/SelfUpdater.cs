@@ -17,23 +17,18 @@ namespace tldr_sharp
 {
     internal static class SelfUpdater
     {
-        private const string ApiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest";
-        private const string UpdateUrl = "https://github.com/principis/tldr-sharp/releases/download/";
-
-        private const string ScriptUrl =
-            "https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/linux_install.sh";
 
         internal static void CheckSelfUpdate()
         {
             var spinner = new CustomSpinner("Checking for update");
 
             using var client = new WebClient();
-            client.Headers.Add("user-agent", Program.UserAgent);
+            client.Headers.Add("user-agent", Config.UserAgent);
 
             string json;
 
             try {
-                json = client.DownloadString(ApiUrl);
+                json = client.DownloadString(Config.ApiUrl);
             }
             catch (WebException e) {
                 CustomConsole.WriteError(
@@ -156,12 +151,12 @@ namespace tldr_sharp
 
         private static string GetUpdateUrl(UpdateType type, Version version)
         {
-            string downloadUrl = $"{UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/tldr-sharp";
+            string downloadUrl = $"{Config.UpdateUrl}v{version.Major}.{version.Minor}.{version.Build}/tldr-sharp";
 
             return type switch {
                 UpdateType.Debian => $"{downloadUrl}.deb",
                 UpdateType.Rpm => $"{downloadUrl}.rpm",
-                UpdateType.Script => ScriptUrl,
+                UpdateType.Script => Config.ScriptUrl,
                 _ => null
             };
         }

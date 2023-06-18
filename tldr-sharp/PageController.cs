@@ -27,13 +27,13 @@ namespace tldr_sharp
             int keyLength = results.Aggregate("", (max, cur) => max.Length > cur.name.Length ? max : cur.name).Length +
                             1;
 
-            if (Program.AnsiSupport) {
+            if (Config.AnsiSupport) {
                 keyLength += Ansi.Magenta.Length + Ansi.Default.Length;
             }
 
             foreach ((string page, string[] matches) in results)
             foreach (string line in matches) {
-                if (Program.AnsiSupport) {
+                if (Config.AnsiSupport) {
                     string selector = $"{Ansi.Magenta}{page}{Ansi.Default}:";
 
                     Console.WriteLine("{0}\t{1}", selector.PadRight(keyLength),
@@ -118,7 +118,7 @@ namespace tldr_sharp
                 if (prefLanguage != null) {
                     Console.WriteLine(
                         $"The `{pageName}` page could not be found in {Locale.GetLanguageName(prefLanguage)}. " +
-                        $"{Environment.NewLine}Feel free to translate it: https://github.com/tldr-pages/tldr/blob/main/CONTRIBUTING.md#translations");
+                        $"{Environment.NewLine}Feel free to translate it: {Config.NewTranslationUrl}");
                     return 2;
                 }
 
@@ -192,9 +192,7 @@ namespace tldr_sharp
 
         private static int NotFound(string page)
         {
-            Console.WriteLine(
-                "Page not found.{0}Feel free to create an issue at: https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20{1}",
-                Environment.NewLine, page);
+            Console.WriteLine($"Page not found.{Environment.NewLine}Feel free to create an issue at: {Config.NewPageUrl}{page}");
             return 2;
         }
 
@@ -206,7 +204,7 @@ namespace tldr_sharp
             }
 
             if (diffPlatform != null) {
-                if (Program.AnsiSupport) {
+                if (Config.AnsiSupport) {
                     Console.WriteLine("{0}{1}[WARN] This page is for the {2} platform!{3}{4}", Ansi.Red, Ansi.Bold,
                         diffPlatform, Ansi.Off, Environment.NewLine);
                 }
@@ -214,7 +212,7 @@ namespace tldr_sharp
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("[WARN] This page is for the {0} platform!{1}", diffPlatform,
                         Environment.NewLine);
-                    Console.ForegroundColor = Program.DefaultColor;
+                    Console.ForegroundColor = Config.DefaultColor;
                 }
             }
 
