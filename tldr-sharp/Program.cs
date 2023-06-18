@@ -5,11 +5,8 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Mono.Options;
@@ -33,7 +30,7 @@ namespace tldr_sharp
         private static extern IntPtr GetStdHandle(int nStdHandle);
 
 
-        private const string ClientSpecVersion = "1.5";
+        internal const string ClientSpecVersion = "1.5";
         internal static readonly bool AnsiSupport;
 
         internal static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
@@ -54,12 +51,10 @@ namespace tldr_sharp
 
         public static int Main(string[] args)
         {
-            try
-            {
+            try {
                 return doMain(args);
             }
-            catch (IOException)
-            {
+            catch (IOException) {
                 // TODO: Implement using UnixSignal
                 return 1;
             }
@@ -67,126 +62,70 @@ namespace tldr_sharp
 
         private static int doMain(string[] args)
         {
-            bool showHelp = false;
+            var cli = new Cli();
+            Cli.Settings settings;
 
-            bool list = false;
-            bool ignorePlatform = false;
-
-            string language = null;
-            string platform = null;
-            string search = null;
-
-            bool markdown = false;
-            string render = null;
-
-            var options = new OptionSet {
-                "Usage: tldr command [options]" + Environment.NewLine,
-                "Simplified and community-driven man pages" + Environment.NewLine, {
-                    "a|list-all", "List all pages",
-                    a => list = ignorePlatform = a != null
-                }, {
-                    "c|clear-cache", "Clear the cache",
-                    c => {
-                        CustomSpinner.Run("Clearing cache", Cache.Clear);
-                        Environment.Exit(0);
-                    }
-                }, {
-                    "f=|render=", "Render a specific markdown file",
-                    v => render = v
-                }, {
-                    "h|help", "Display this help text",
-                    h => showHelp = h != null
-                }, {
-                    "l|list", "List all pages for the current platform and language",
-                    l => list = l != null
-                }, {
-                    "list-os", "List all platforms",
-                    o => {
-                        Cache.Check();
-                        Console.WriteLine(string.Join(Environment.NewLine, ListPlatform()));
-                    }
-                }, {
-                    "list-languages", "List all languages",
-                    la => {
-                        Cache.Check();
-                        Console.WriteLine(string.Join(Environment.NewLine,
-                            ListLanguages().Select(lang => {
-                                string name = Locale.GetLanguageName(lang);
-
-                                return name == null ? lang : $"{lang}:\t{name}";
-                            })));
-                    }
-                }, {
-                    "L=|language=|lang=", "Specifies the preferred language",
-                    la => language = la
-                }, {
-                    "m|markdown", "Show the markdown source of a page",
-                    v => markdown = v != null
-                }, {
-                    "p=|platform=", "Override the default platform",
-                    o => platform = o
-                }, {
-                    "s=|search=", "Search for a string",
-                    s => search = s
-                }, {
-                    "u|update", "Update the cache",
-                    u => Updater.Update()
-                }, {
-                    "self-update", "Check for tldr-sharp updates",
-                    u => {
-                        SelfUpdater.CheckSelfUpdate();
-                        Environment.Exit(0);
-                    }
-                }, {
-                    "v|version", "Show version information",
-                    v => {
-                        FileVersionInfo version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
-                        Console.WriteLine($"tldr-sharp {version.ProductMajorPart}.{version.ProductMinorPart}.{version.ProductBuildPart}");
-                        Console.WriteLine("tldr-pages client specification " + ClientSpecVersion);
-                        Console.WriteLine(version.LegalCopyright);
-                        Console.WriteLine(@"License GPLv3+: GNU GPL version 3 or later <https://www.gnu.org/licenses/gpl-3.0.html>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.");
-                        Environment.Exit(0);
-                    }
-                }
-            };
-
-            List<string> extra;
             try {
-                extra = options.Parse(args);
+                settings = cli.ParseArgs(args);
             }
             catch (OptionException e) {
                 Console.WriteLine(e.Message);
                 return 1;
             }
 
-            if (showHelp || args.Length == 0) {
-                options.WriteOptionDescriptions(Console.Out);
+            if (settings.ShowHelp || args.Length == 0) {
+                cli.WriteHelp(Console.Out);
                 return args.Length == 0 ? 1 : 0;
             }
 
-            if (render != null) return PageController.Render(render);
+            if (settings.RenderFile != null) {
+                return PageController.Render(settings.RenderFile);
+            }
+
+            if (settings.CacheClear) {
+                Cache.Clear();
+            }
+
+            if (settings.CacheUpdate) {
+                Updater.Update();
+            }
 
             // All following functions rely on the cache, so check it.
             Cache.Check();
 
-            if (language != null) {
-                if (!CheckLanguage(language)) {
-                    Console.WriteLine("[ERROR] unknown language '{0}'", language);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            if (settings.ListLanguages) {
+                Console.WriteLine(string.Join(Environment.NewLine,
+                    ListLanguages().Select(lang =>
+                    {
+                        string name = Locale.GetLanguageName(lang);
+
+                        return name == null ? lang : $"{lang}:\t{name}";
+                    })));
+            }
+
+            if (settings.ListPlatform) {
+                Console.WriteLine(string.Join(Environment.NewLine, ListPlatform()));
+            }
+
+            if (settings.Language != null) {
+                if (!CheckLanguage(settings.Language)) {
+                    Console.WriteLine("[ERROR] unknown language '{0}'", settings.Language);
                     return 1;
                 }
             }
 
-            if (list) {
-                PageController.ListAll(ignorePlatform, language, platform);
+            if (settings.List) {
+                PageController.ListAll(settings.IgnorePlatform, settings.Language, settings.Platform);
                 return 0;
             }
 
-            if (search != null) return PageController.Search(search, language, platform);
+            if (settings.SearchString != null) {
+                return PageController.Search(settings.SearchString, settings.Language, settings.Platform);
+            }
 
             StringBuilder builder = new StringBuilder();
-            foreach (string arg in extra) {
+            foreach (string arg in settings.Extra) {
                 if (arg.StartsWith("-")) {
                     if (builder.Length == 0) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
                     return 1;
@@ -197,7 +136,7 @@ There is NO WARRANTY, to the extent permitted by law.");
 
             string page = builder.ToString();
 
-            return page.Trim().Length > 0 ? PageController.Print(page, language, platform, markdown) : 0;
+            return page.Trim().Length > 0 ? PageController.Print(page, settings.Language, settings.Platform, settings.Markdown) : 0;
         }
 
         private static bool CheckWindowsAnsiSupport()
