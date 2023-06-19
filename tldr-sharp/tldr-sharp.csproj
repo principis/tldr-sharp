@@ -28,9 +28,8 @@
 
     <ItemGroup>
         <PackageReference Include="Iso639" Version="1.0.0" />
-        <PackageReference Include="Mono.Data.Sqlite" Version="1.0.61" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.7" />
         <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-        <PackageReference Include="Mono.Posix-4.5" Version="4.5.0" />
         <PackageReference Include="NaturalSort.Extension" Version="4.0.0" />
         <PackageReference Include="SharpCompress" Version="0.33.0" />
         <PackageReference Include="Spectre.Console" Version="0.47.0" />

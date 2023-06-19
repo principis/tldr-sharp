@@ -5,10 +5,8 @@
 */
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using Mono.Data.Sqlite;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -65,15 +63,7 @@ namespace tldr_sharp
 
         internal static DateTime LastUpdate()
         {
-            using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
-            conn.Open();
-
-            using var command = new SqliteCommand("SELECT value FROM config WHERE parameter = @parameter", conn);
-            command.Parameters.Add(new SqliteParameter("@parameter", "last-update"));
-
-            using SqliteDataReader reader = command.ExecuteReader();
-            reader.Read();
-            return DateTime.Parse(reader.GetString(0), CultureInfo.InvariantCulture);
+            return Index.LastUpdate();
         }
     }
 }

@@ -6,11 +6,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -22,47 +21,63 @@ namespace tldr_sharp
             AnsiConsole.Status().Start("Creating index...", Create);
         }
 
+
+        internal static DateTime LastUpdate()
+        {
+            using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
+            conn.Open();
+
+            using var command = new SqliteCommand("SELECT value FROM config WHERE parameter = @parameter", conn);
+            command.Parameters.Add(new SqliteParameter("@parameter", "last-update"));
+
+            using SqliteDataReader reader = command.ExecuteReader();
+            reader.Read();
+            return DateTime.Parse(reader.GetString(0), CultureInfo.InvariantCulture);
+        }
+
         internal static void Create(StatusContext ctx)
         {
             var cacheDir = new DirectoryInfo(Config.CachePath);
 
-            SqliteConnection.CreateFile(Config.DbPath);
-
             using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
 
-            using var command = new SqliteCommand(conn);
             using SqliteTransaction transaction = conn.BeginTransaction();
+            using (SqliteCommand command = conn.CreateCommand()) {
+                command.CommandText = "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7), local INTEGER)";
+                command.ExecuteNonQuery();
 
-            command.CommandText =
-                "CREATE TABLE pages (name VARCHAR(100), platform VARCHAR(10), lang VARCHAR(7), local INTEGER)";
-            command.ExecuteNonQuery();
+                command.CommandText = "CREATE TABLE config (parameter VARCHAR(20), value VARCHAR(100))";
+                command.ExecuteNonQuery();
 
-            command.CommandText = "CREATE TABLE config (parameter VARCHAR(20), value VARCHAR(100))";
-            command.ExecuteNonQuery();
+                command.CommandText = "INSERT INTO config (parameter, value) VALUES(@parameter, @value)";
+                command.Parameters.AddWithValue("@parameter", "last-update");
+                command.Parameters.AddWithValue("@value",
+                    DateTime.UtcNow.Date.ToString(CultureInfo.InvariantCulture));
+                command.ExecuteNonQuery();
 
-            command.CommandText = "INSERT INTO config (parameter, value) VALUES(@parameter, @value)";
-            command.Parameters.AddWithValue("@parameter", "last-update");
-            command.Parameters.AddWithValue("@value",
-                DateTime.UtcNow.Date.ToString(CultureInfo.InvariantCulture));
-            command.ExecuteNonQuery();
-            command.Transaction = transaction;
-            command.CommandType = CommandType.Text;
-
-            // Create indexes
-            command.CommandText = "CREATE INDEX names_index ON pages (name, platform, lang, local)";
-            command.ExecuteNonQuery();
-            command.CommandText = "CREATE INDEX lang_platform_index ON pages (lang, platform, name, local)";
-            command.ExecuteNonQuery();
-            command.CommandText = "CREATE INDEX platform_index ON pages (platform)";
-            command.ExecuteNonQuery();
-            command.CommandText = "CREATE INDEX lang_index ON pages (lang)";
-            command.ExecuteNonQuery();
+                // Create indexes
+                command.CommandText = "CREATE INDEX names_index ON pages (name, platform, lang, local)";
+                command.ExecuteNonQuery();
+                command.CommandText = "CREATE INDEX lang_platform_index ON pages (lang, platform, name, local)";
+                command.ExecuteNonQuery();
+                command.CommandText = "CREATE INDEX platform_index ON pages (platform)";
+                command.ExecuteNonQuery();
+                command.CommandText = "CREATE INDEX lang_index ON pages (lang)";
+                command.ExecuteNonQuery();
+            }
 
             // Add pages
-            command.CommandText =
+            var pageCommand = conn.CreateCommand();
+            pageCommand.CommandText =
                 "INSERT INTO pages (name, platform, lang, local) VALUES(@name, @platform, @lang, @local)";
             List<string> preferredLanguages = Locale.GetEnvLanguages();
+
+            var nameParam = pageCommand.Parameters.AddWithValue("@name", null);
+            var platformParam = pageCommand.Parameters.AddWithValue("@platform", null);
+            var langParam = pageCommand.Parameters.AddWithValue("@lang", null);
+            var localParam = pageCommand.Parameters.AddWithValue("@local", null);
+
 
             foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
                 string lang = Locale.DefaultLanguage;
@@ -70,17 +85,16 @@ namespace tldr_sharp
                 if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
 
                 if (lang != Locale.DefaultLanguage &&
-                    preferredLanguages.All(x => lang.Substring(0, 2) != x.Substring(0, 2)))
+                    preferredLanguages.All(x => lang[..2] != x[..2]))
                     isLocal = false;
 
                 foreach (DirectoryInfo osDir in dir.EnumerateDirectories())
                 foreach (FileInfo file in osDir.EnumerateFiles("*.md", SearchOption.AllDirectories)) {
-                    command.Parameters.AddWithValue("@name",
-                        Path.GetFileNameWithoutExtension(file.Name));
-                    command.Parameters.AddWithValue("@platform", osDir.Name);
-                    command.Parameters.AddWithValue("@lang", lang);
-                    command.Parameters.AddWithValue("@local", isLocal);
-                    command.ExecuteNonQuery();
+                    nameParam.Value = Path.GetFileNameWithoutExtension(file.Name);
+                    platformParam.Value = osDir.Name;
+                    langParam.Value = lang;
+                    localParam.Value = isLocal;
+                    pageCommand.ExecuteNonQuery();
                 }
             }
 
@@ -119,7 +133,8 @@ namespace tldr_sharp
         internal static List<Page> QueryByLanguageAndPlatform(string language, string platform)
         {
             return Query("lang = @lang AND (platform = @platform OR platform = 'common')",
-                new[] {
+                new[]
+                {
                     new SqliteParameter("@lang", language ?? Locale.GetPreferredLanguageOrDefault()),
                     new SqliteParameter("@platform", platform ?? GetPlatform())
                 });
@@ -203,8 +218,7 @@ namespace tldr_sharp
             using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
             using SqliteCommand command = conn.CreateCommand();
-            command.CommandText =
-                "UPDATE pages SET local = TRUE WHERE name = @name AND lang = @lang AND platform = @platform";
+            command.CommandText = "UPDATE pages SET local = TRUE WHERE name = @name AND lang = @lang AND platform = @platform";
             command.Parameters.Add(new SqliteParameter("@name", page.Name));
             command.Parameters.Add(new SqliteParameter("@platform", page.Platform));
             command.Parameters.Add(new SqliteParameter("@lang", page.Language));
