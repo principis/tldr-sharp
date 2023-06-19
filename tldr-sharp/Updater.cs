@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
+using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
-using SharpCompress.Readers;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -65,15 +67,13 @@ namespace tldr_sharp
 
             ctx.Status("Updating page cache: [grey]Extracting pages[/]");
 
-            using (Stream stream = File.OpenRead(tmpPath)) {
-                using IReader reader = ReaderFactory.Open(stream);
-                while (reader.MoveToNextEntry()) {
-                    if (!reader.Entry.IsDirectory)
-                        reader.WriteEntryToDirectory(Config.CachePath, new ExtractionOptions
-                        {
-                            ExtractFullPath = true,
-                            Overwrite = true
-                        });
+            using (var archive = ZipArchive.Open(tmpPath)) {
+                foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory)) {
+                    entry.WriteToDirectory(Config.CachePath, new ExtractionOptions()
+                    {
+                        ExtractFullPath = true,
+                        Overwrite = true
+                    });
                 }
             }
 
