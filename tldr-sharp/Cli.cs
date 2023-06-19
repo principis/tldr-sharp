@@ -78,11 +78,7 @@ namespace tldr_sharp
                 },
                 {
                     "self-update", "Check for tldr-sharp updates",
-                    u =>
-                    {
-                        // SelfUpdater.CheckSelfUpdate();
-                        Environment.Exit(0);
-                    }
+                    v => settings.SelfUpdate = v != null
                 },
                 {
                     "v|version", "Show version information",
@@ -152,6 +148,7 @@ There is NO WARRANTY, to the extent permitted by law.");
             public bool ListLanguages { get; internal set; }
             public bool Markdown { get; internal set; }
             public string? RenderFile { get; internal set; }
+            public bool SelfUpdate { get; internal set; }
             public bool ShowHelp { get; internal set; }
 
             public string? Language { get; internal set; }

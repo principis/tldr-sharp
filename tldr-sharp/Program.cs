@@ -57,6 +57,10 @@ namespace tldr_sharp
                 Updater.Update();
             }
 
+            if (settings.SelfUpdate) {
+                SelfUpdater.Check();
+            }
+
             // All following functions rely on the cache, so check it.
             Cache.Check();
 
