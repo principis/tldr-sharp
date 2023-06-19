@@ -20,8 +20,6 @@ namespace tldr_sharp
 
         internal static void CheckSelfUpdate()
         {
-            var spinner = new CustomSpinner("Checking for update");
-
             using var client = new WebClient();
             client.Headers.Add("user-agent", Config.UserAgent);
 
@@ -31,8 +29,7 @@ namespace tldr_sharp
                 json = client.DownloadString(Config.ApiUrl);
             }
             catch (WebException e) {
-                CustomConsole.WriteError(
-                    $"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
+                Cli.WriteErrorMessage($"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
 
                 Environment.Exit(1);
                 return;
@@ -44,7 +41,6 @@ namespace tldr_sharp
                     .Split(':')[1]
                     .Trim('"', ' ', 'v'));
 
-            spinner.Dispose();
             if (remoteVersion.CompareTo(Assembly.GetExecutingAssembly().GetName().Version) <= 0) {
                 Console.WriteLine("tldr-sharp is up to date!");
                 return;
@@ -108,8 +104,7 @@ namespace tldr_sharp
                     client.DownloadFile(url, tmpPath);
                 }
                 catch (WebException e) {
-                    CustomConsole.WriteError(
-                        $"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
+                    Cli.WriteErrorMessage($"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
                     Environment.Exit(1);
                     return;
                 }
@@ -143,7 +138,7 @@ namespace tldr_sharp
                 }
             }
 
-            CustomSpinner.Run("Clearing Cache", Cache.Clear);
+            Cache.Clear();
 
             Console.WriteLine("[INFO] v{0} installed.", version);
             Environment.Exit(0);

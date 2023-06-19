@@ -6,6 +6,7 @@
 
 using System;
 using System.Text;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -45,34 +46,35 @@ namespace tldr_sharp
 
         private static string ParseAnsiLine(string line, bool formatted = false)
         {
-            var builder = new StringBuilder(line);
+            var builder = new StringBuilder(line.EscapeMarkup());
 
-            if (line.Contains("{{")) builder.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
+            if (line.Contains("{{")) builder.Replace("{{", "[green]").Replace("}}", "[/]");
 
             int urlStart = builder.IndexOf("<");
             if (urlStart != -1) {
                 int urlEnd = builder.IndexOf(">", urlStart);
                 if (urlEnd != -1)
-                    builder.Insert(urlEnd, Ansi.Off).Insert(urlStart + 1, Ansi.BoldOff + Ansi.Underline);
+                    builder.Remove(urlEnd, 1).Insert(urlEnd, "[/][bold] ").Insert(urlStart + 1, "[underline]").Remove(urlStart, 1)
+                        .Insert(urlStart, "[/]");
             }
 
             switch (builder[0]) {
                 case '#':
                     builder.Remove(0, 2)
-                        .Insert(0, Ansi.Underline + Ansi.Bold)
-                        .Append(Ansi.Off);
+                        .Insert(0, "[underline bold]")
+                        .Append("[/]");
                     if (formatted) builder.AppendLine();
                     break;
                 case '>':
-                    builder.Remove(0, 2).Insert(0, Ansi.Bold).Append(Ansi.Off);
+                    builder.Remove(0, 2).Insert(0, "[bold]").Append("[/]");
                     break;
                 case '-':
                     if (formatted) builder.Insert(0, Environment.NewLine);
                     break;
                 case '`':
-                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red)
+                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, "[maroon]")
                         .Insert(0, formatted ? Spacing : "")
-                        .Append(Ansi.Off);
+                        .Append("[/]");
                     break;
             }
 
@@ -81,9 +83,9 @@ namespace tldr_sharp
 
         internal static string ParseSearchLine(string line)
         {
-            var builder = new StringBuilder(line);
+            var builder = new StringBuilder(line.EscapeMarkup());
 
-            if (line.Contains("{{")) builder.Replace("{{", Ansi.Green).Replace("}}", Ansi.Red);
+            if (line.Contains("{{")) builder.Replace("{{", "[green]").Replace("}}", "[/]");
 
             switch (builder[0]) {
                 case '#':
@@ -95,7 +97,7 @@ namespace tldr_sharp
                 case '-':
                     break;
                 case '`':
-                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, Ansi.Red).Append(Ansi.Off);
+                    builder.Remove(0, 1).Remove(builder.Length - 1, 1).Insert(0, "[maroon]").Append("[/]");
                     break;
             }
 

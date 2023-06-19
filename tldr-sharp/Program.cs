@@ -7,7 +7,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Mono.Options;
 using static tldr_sharp.Index;
@@ -51,6 +50,7 @@ namespace tldr_sharp
 
             if (settings.CacheClear) {
                 Cache.Clear();
+                return 0;
             }
 
             if (settings.CacheUpdate) {
@@ -62,7 +62,7 @@ namespace tldr_sharp
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
             if (settings.ListLanguages) {
-                Console.WriteLine(string.Join(Environment.NewLine,
+                Cli.WriteLine(string.Join(Environment.NewLine,
                     ListLanguages().Select(lang =>
                     {
                         string name = Locale.GetLanguageName(lang);
@@ -72,12 +72,12 @@ namespace tldr_sharp
             }
 
             if (settings.ListPlatform) {
-                Console.WriteLine(string.Join(Environment.NewLine, ListPlatform()));
+                Cli.WriteLine(string.Join(Environment.NewLine, ListPlatform()));
             }
 
             if (settings.Language != null) {
                 if (!CheckLanguage(settings.Language)) {
-                    Console.WriteLine("[ERROR] unknown language '{0}'", settings.Language);
+                    Cli.WriteErrorMessage($"unknown language '{settings.Language}'");
                     return 1;
                 }
             }
@@ -94,7 +94,7 @@ namespace tldr_sharp
             StringBuilder builder = new StringBuilder();
             foreach (string arg in settings.Extra) {
                 if (arg.StartsWith("-")) {
-                    if (builder.Length == 0) Console.WriteLine("[ERROR] unknown option '{0}'", arg);
+                    if (builder.Length == 0) Cli.WriteErrorMessage($"unknown option '{arg}'");
                     return 1;
                 }
 

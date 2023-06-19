@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using Mono.Data.Sqlite;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -18,11 +19,18 @@ namespace tldr_sharp
         {
             if (File.Exists(Config.DbPath)) return;
 
-            CustomConsole.WriteWarning("Database not found.");
+            Cli.WriteWarningMessage("Database not found.");
             Updater.Update();
+            Cli.WriteLine();
         }
 
         internal static void Clear()
+        {
+            AnsiConsole.Status().Start("Clearing page cache", Clear);
+            Cli.WriteMessage("Page cache [green]cleared.[/]");
+        }
+
+        internal static void Clear(StatusContext ctx)
         {
             if (File.Exists(Config.CachePath)) File.Delete(Config.CachePath);
 
@@ -32,6 +40,12 @@ namespace tldr_sharp
         }
 
         internal static void DownloadPage(Page page)
+        {
+            AnsiConsole.Status().Start($"Downloading {page.Name}...", ctx => DownloadPage(page, ctx));
+            Cli.WriteMessage($"Page {page.Name} [green]downloaded.[/]");
+        }
+
+        internal static void DownloadPage(Page page, StatusContext ctx)
         {
             var pageFile = new FileInfo(page.GetPath());
             Directory.CreateDirectory(pageFile.DirectoryName ?? throw new ArgumentException());

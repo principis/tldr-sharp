@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Mono.Options;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -104,6 +105,37 @@ There is NO WARRANTY, to the extent permitted by law.");
 
             return settings;
         }
+
+        public static void WriteMessage(string format, params object[] args)
+        {
+            AnsiConsole.MarkupLine(format, args);
+        }
+
+        public static void WriteMessage(string message)
+        {
+            AnsiConsole.MarkupLine(message);
+        }
+
+        public static void WriteLine()
+        {
+            AnsiConsole.WriteLine();
+        }
+
+        public static void WriteLine(string message)
+        {
+            AnsiConsole.WriteLine(message);
+        }
+
+        public static void WriteErrorMessage(string message)
+        {
+            AnsiConsole.MarkupLine($"[maroon]ERROR:[/] {message}");
+        }
+
+        public static void WriteWarningMessage(string message)
+        {
+            AnsiConsole.MarkupLine($"[yellow]{message}[/]");
+        }
+
 
         public void WriteHelp(TextWriter o)
         {

@@ -10,6 +10,7 @@ using System.IO;
 using System.Net;
 using SharpCompress.Common;
 using SharpCompress.Readers;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -17,12 +18,17 @@ namespace tldr_sharp
     {
         internal static void Update()
         {
-            var spinner = new CustomSpinner("Updating cache");
+            AnsiConsole.Status().Start("Updating page cache", Update);
+            Cli.WriteMessage("Page cache [green]updated.[/]");
+        }
 
+        internal static void Update(StatusContext ctx)
+        {
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
             if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
 
+            ctx.Status("Updating page cache: [grey]Downloading pages[/]");
             try {
                 DownloadPages(Config.ArchiveRemote, tmpPath);
             }
@@ -31,15 +37,15 @@ namespace tldr_sharp
                     DownloadPages(Config.ArchiveAlternativeRemote, tmpPath);
                 }
                 catch (WebException eAlternative) {
-                    CustomConsole.WriteError(eAlternative.Message);
+                    Cli.WriteErrorMessage($"Downloading pages failed: {eAlternative.GetBaseException().Message}");
 
                     if (eRemote.Response is HttpWebResponse response &&
                         response.StatusCode == HttpStatusCode.Forbidden) {
-                        Console.WriteLine("Please try to set the Cloudflare cookie and user-agent. " +
-                                          "See https://github.com/principis/tldr-sharp/wiki/403-when-updating-cache.");
+                        Cli.WriteLine("Please try to set the Cloudflare cookie and user-agent. " +
+                                              "See https://github.com/principis/tldr-sharp/wiki/403-when-updating-cache.");
                     }
                     else {
-                        Console.WriteLine("Please make sure you have a functioning internet connection.");
+                        Cli.WriteLine("Please make sure you have a functioning internet connection.");
                     }
 
                     Environment.Exit(1);
@@ -48,37 +54,39 @@ namespace tldr_sharp
             }
 
             try {
-                Cache.Clear();
+                ctx.Status("Updating page cache: [grey]Clearing cache[/]");
+                Cache.Clear(ctx);
             }
             catch (Exception e) {
-                CustomConsole.WriteError($"{e.Message}{Environment.NewLine}An error has occurred clearing the cache.");
+                Cli.WriteErrorMessage($"An error has occurred clearing the cache: {e.Message}{Environment.NewLine}");
                 Environment.Exit(1);
                 return;
             }
+
+            ctx.Status("Updating page cache: [grey]Extracting pages[/]");
 
             using (Stream stream = File.OpenRead(tmpPath)) {
                 using IReader reader = ReaderFactory.Open(stream);
                 while (reader.MoveToNextEntry()) {
                     if (!reader.Entry.IsDirectory)
-                        reader.WriteEntryToDirectory(Config.CachePath, new ExtractionOptions {
+                        reader.WriteEntryToDirectory(Config.CachePath, new ExtractionOptions
+                        {
                             ExtractFullPath = true,
                             Overwrite = true
                         });
                 }
             }
 
+            ctx.Status("Updating page cache: [grey]Creating index[/]");
+            Index.Create(ctx);
+
+            ctx.Status("Updating page cache: [grey]Optimizing cache[/]");
             File.Delete(tmpPath);
-            spinner.Dispose();
-
-            Index.Create();
-
             CleanupCache();
         }
 
         private static void CleanupCache()
         {
-            var spinner = new CustomSpinner("Cleaning cache");
-
             var cacheDir = new DirectoryInfo(Config.CachePath);
 
             foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
@@ -95,8 +103,6 @@ namespace tldr_sharp
 
                 dir.Delete(true);
             }
-
-            spinner.Close();
         }
 
         private static void DownloadPages(string url, string tmpPath)

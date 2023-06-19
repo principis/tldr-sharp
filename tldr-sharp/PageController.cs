@@ -24,26 +24,14 @@ namespace tldr_sharp
 
             results.Sort((x, y) => string.Compare(x.Item1, y.Item1, StringComparison.Ordinal));
 
-            int keyLength = results.Aggregate("", (max, cur) => max.Length > cur.name.Length ? max : cur.name).Length +
-                            1;
-
-            if (Config.AnsiSupport) {
-                keyLength += Ansi.Magenta.Length + Ansi.Default.Length;
-            }
+            int keyLength = results.Aggregate("", (max, cur) => max.Length > cur.name.Length ? max : cur.name).Length + 1;
 
             foreach ((string page, string[] matches) in results)
             foreach (string line in matches) {
-                if (Config.AnsiSupport) {
-                    string selector = $"{Ansi.Magenta}{page}{Ansi.Default}:";
+                string selector = $"[magenta]{page}[/]:";
 
-                    Console.WriteLine("{0}\t{1}", selector.PadRight(keyLength),
-                        PageParser.ParseSearchLine(line)
-                            .Replace(searchString, Ansi.Underline + searchString + Ansi.UnderlineOff));
-                }
-                else {
-                    string selector = $"{page}:";
-                    Console.WriteLine("{0}\t{1}", selector.PadRight(keyLength), PageParser.ParseLine(line));
-                }
+                Cli.WriteMessage("{0}\t{1}", selector.PadRight(keyLength + 12),
+                    PageParser.ParseSearchLine(line).Replace(searchString, $"[underline]{searchString}[/]"));
             }
 
             return 0;
@@ -64,9 +52,8 @@ namespace tldr_sharp
             List<Page> pages =
                 ignorePlatform ? QueryByLanguage(language) : QueryByLanguageAndPlatform(language, platform);
 
-            foreach (Page page in pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort()))
-            {
-                Console.WriteLine(page);
+            foreach (Page page in pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())) {
+                Cli.WriteLine(page.ToString());
             }
         }
 
@@ -80,9 +67,8 @@ namespace tldr_sharp
                 languages = Locale.GetPreferredLanguages();
 
                 if (languages.Count == 0) {
-                    Console.WriteLine(
-                        $"[INFO] None of the preferred languages found, using {Locale.GetLanguageName(Locale.DefaultLanguage)} instead. " +
-                        "See `tldr --list-languages` for a list of all available languages.");
+                    Cli.WriteWarningMessage($"None of the preferred languages found, using [underline]{Locale.GetLanguageName(Locale.DefaultLanguage)}[/] instead. " +
+                                            $"See `tldr --list-languages` for a list of all available languages.{Environment.NewLine}");
                     languages.Add(Locale.DefaultLanguage);
                 }
             }
@@ -97,8 +83,8 @@ namespace tldr_sharp
 
             if (results.Count == 0) {
                 if ((DateTime.UtcNow.Date - Cache.LastUpdate()).TotalDays > 5) {
-                    Console.WriteLine("Page not found.");
-                    Console.Write("Cache older than 5 days. ");
+                    Cli.WriteWarningMessage("Page not found.");
+                    Cli.WriteLine("Cache older than 5 days.");
 
                     Updater.Update();
                     results = QueryByName(pageName);
@@ -116,9 +102,9 @@ namespace tldr_sharp
             }
             catch (ArgumentNullException) {
                 if (prefLanguage != null) {
-                    Console.WriteLine(
-                        $"The `{pageName}` page could not be found in {Locale.GetLanguageName(prefLanguage)}. " +
-                        $"{Environment.NewLine}Feel free to translate it: {Config.NewTranslationUrl}");
+                    Cli.WriteWarningMessage($"The `{pageName}` page could not be found in {Locale.GetLanguageName(prefLanguage)}.");
+                    Cli.WriteLine($"Feel free to translate it: {Config.NewTranslationUrl}");
+
                     return 2;
                 }
 
@@ -131,17 +117,21 @@ namespace tldr_sharp
                 }
             }
 
-            if (!page.Local) CustomSpinner.Run("Page not cached. Downloading", page.Download);
+            if (!page.Local) {
+                Cli.WriteWarningMessage("Page not cached.");
+                page.Download();
+                Cli.WriteLine();
+            }
 
             string path = page.GetPath();
             if (!File.Exists(path)) {
-                Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
+                Cli.WriteErrorMessage($"File \"{path}\" not found!");
 
                 return 1;
             }
 
             if (markdown)
-                Console.WriteLine(File.ReadAllText(path));
+                Cli.WriteLine(File.ReadAllText(path));
             else
                 return Render(path, altPlatform);
 
@@ -192,33 +182,27 @@ namespace tldr_sharp
 
         private static int NotFound(string page)
         {
-            Console.WriteLine($"Page not found.{Environment.NewLine}Feel free to create an issue at: {Config.NewPageUrl}{page}");
+            Cli.WriteWarningMessage($"Page not found.");
+            Cli.WriteLine($"Feel free to create an issue at: {Config.NewPageUrl}{page}");
+
             return 2;
         }
 
         internal static int Render(string path, string diffPlatform = null)
         {
             if (!File.Exists(path)) {
-                Console.WriteLine("[ERROR] File \"{0}\" not found.", path);
+                Cli.WriteErrorMessage($"File \"{path}\" not found!");
+
                 return 1;
             }
 
             if (diffPlatform != null) {
-                if (Config.AnsiSupport) {
-                    Console.WriteLine("{0}{1}[WARN] This page is for the {2} platform!{3}{4}", Ansi.Red, Ansi.Bold,
-                        diffPlatform, Ansi.Off, Environment.NewLine);
-                }
-                else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("[WARN] This page is for the {0} platform!{1}", diffPlatform,
-                        Environment.NewLine);
-                    Console.ForegroundColor = Config.DefaultColor;
-                }
+                Cli.WriteWarningMessage($"This page is for the {diffPlatform} platform!");
             }
 
             foreach (string line in File.ReadLines(path)) {
                 if (line.Length == 0) continue;
-                Console.WriteLine(PageParser.ParseLine(line, true));
+                Cli.WriteMessage(PageParser.ParseLine(line, true));
             }
 
             return 0;

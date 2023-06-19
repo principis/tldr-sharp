@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Mono.Data.Sqlite;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -18,8 +19,11 @@ namespace tldr_sharp
     {
         internal static void Create()
         {
-            using var spinner = new CustomSpinner("Creating index");
+            AnsiConsole.Status().Start("Creating index...", Create);
+        }
 
+        internal static void Create(StatusContext ctx)
+        {
             var cacheDir = new DirectoryInfo(Config.CachePath);
 
             SqliteConnection.CreateFile(Config.DbPath);
@@ -81,7 +85,6 @@ namespace tldr_sharp
             }
 
             transaction.Commit();
-            spinner.Close();
         }
 
         private static List<Page> Query(string queryString, SqliteParameter[] parameters, string page = null)
