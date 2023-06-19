@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <LangVersion>8</LangVersion>
+        <LangVersion>10</LangVersion>
         <IsPackable>false</IsPackable>
-        <TargetFrameworks>net461;net471;net48</TargetFrameworks>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <!-- Set the Product and Version info -->
