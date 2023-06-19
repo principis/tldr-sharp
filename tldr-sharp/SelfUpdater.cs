@@ -6,8 +6,10 @@
 
 using System;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
+using Spectre.Console;
 
 namespace tldr_sharp
 {
@@ -15,15 +17,17 @@ namespace tldr_sharp
     {
         internal static void Check()
         {
-            using var client = new WebClient();
-            client.Headers.Add("user-agent", Config.UserAgent);
+            AnsiConsole.Status().StartAsync("Checking for update", Check).Wait();
+        }
 
+        private static async Task Check(StatusContext ctx)
+        {
             string json;
 
             try {
-                json = client.DownloadString(Config.ApiUrl);
+                json = await HttpUtils.DownloadString(Config.ApiUrl);
             }
-            catch (WebException e) {
+            catch (HttpRequestException e) {
                 Cli.WriteErrorMessage($"{e.Message}{Environment.NewLine}Please make sure you have a functioning internet connection.");
 
                 Environment.Exit(1);

@@ -6,7 +6,7 @@
 
 using System;
 using System.IO;
-using System.Net;
+using System.Threading.Tasks;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -39,24 +39,17 @@ namespace tldr_sharp
 
         internal static void DownloadPage(Page page)
         {
-            AnsiConsole.Status().Start($"Downloading {page.Name}...", ctx => DownloadPage(page, ctx));
+            AnsiConsole.Status().StartAsync($"Downloading {page.Name}...", ctx => DownloadPage(page, ctx)).Wait();
             Cli.WriteMessage($"Page {page.Name} [green]downloaded.[/]");
         }
 
-        internal static void DownloadPage(Page page, StatusContext ctx)
+        internal static async Task DownloadPage(Page page, StatusContext ctx)
         {
             var pageFile = new FileInfo(page.GetPath());
             Directory.CreateDirectory(pageFile.DirectoryName ?? throw new ArgumentException());
 
-            using (var client = new WebClient()) {
-                client.Headers.Add("user-agent", Config.UserAgent);
-
-                string language = page.DirLanguage;
-                string data = client.DownloadString(address: $"{Config.RemoteUrl}{language}/{page.Platform}/{page.Name}.md");
-
-                using StreamWriter sw = pageFile.CreateText();
-                sw.WriteLine(data);
-            }
+            string language = page.DirLanguage;
+            await HttpUtils.DownloadFile($"{Config.RemoteUrl}{language}/{page.Platform}/{page.Name}.md", page.GetPath());
 
             Index.SetPageAsDownloaded(page);
         }

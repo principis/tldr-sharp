@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using SharpCompress.Archives;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
@@ -20,11 +21,11 @@ namespace tldr_sharp
     {
         internal static void Update()
         {
-            AnsiConsole.Status().Start("Updating page cache", Update);
+            AnsiConsole.Status().StartAsync("Updating page cache", Update).Wait();
             Cli.WriteMessage("Page cache [green]updated.[/]");
         }
 
-        internal static void Update(StatusContext ctx)
+        internal static async Task Update(StatusContext ctx)
         {
             string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             if (File.Exists(tmpPath)) File.Delete(tmpPath);
@@ -32,11 +33,11 @@ namespace tldr_sharp
 
             ctx.Status("Updating page cache: [grey]Downloading pages[/]");
             try {
-                DownloadPages(Config.ArchiveRemote, tmpPath);
+                await DownloadPages(Config.ArchiveRemote, tmpPath);
             }
             catch (WebException eRemote) {
                 try {
-                    DownloadPages(Config.ArchiveAlternativeRemote, tmpPath);
+                    await DownloadPages(Config.ArchiveAlternativeRemote, tmpPath);
                 }
                 catch (WebException eAlternative) {
                     Cli.WriteErrorMessage($"Downloading pages failed: {eAlternative.GetBaseException().Message}");
@@ -44,7 +45,7 @@ namespace tldr_sharp
                     if (eRemote.Response is HttpWebResponse response &&
                         response.StatusCode == HttpStatusCode.Forbidden) {
                         Cli.WriteLine("Please try to set the Cloudflare cookie and user-agent. " +
-                                              "See https://github.com/principis/tldr-sharp/wiki/403-when-updating-cache.");
+                                      "See https://github.com/principis/tldr-sharp/wiki/403-when-updating-cache.");
                     }
                     else {
                         Cli.WriteLine("Please make sure you have a functioning internet connection.");
@@ -105,15 +106,9 @@ namespace tldr_sharp
             }
         }
 
-        private static void DownloadPages(string url, string tmpPath)
+        private static async Task DownloadPages(string url, string tmpPath)
         {
-            using var client = new WebClient();
-            client.Headers.Add("user-agent", Config.UserAgent);
-
-            if (Environment.GetEnvironmentVariable("TLDR_COOKIE") != null)
-                client.Headers.Add(HttpRequestHeader.Cookie, Environment.GetEnvironmentVariable("TLDR_COOKIE"));
-
-            client.DownloadFile(url, tmpPath);
+            await HttpUtils.DownloadFile(url, tmpPath);
         }
     }
 }
