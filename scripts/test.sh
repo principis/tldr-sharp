@@ -4,120 +4,121 @@
 # SPDX-License-Identifier: CC0-1.0
 
 set -x
-cd tldr-sharp/bin/Release/net461
- 
-chmod +x tldr-sharp.exe
+cd publish/linux-x64
+
+TLDR='./tldr-sharp'
+chmod +x $TLDR
 
 # Test update
-mono tldr-sharp.exe -u >/dev/null
+$TLDR -u >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
-mono tldr-sharp.exe --update >/dev/null
+$TLDR --update >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
- 
-# Test clear cache
-mono tldr-sharp.exe -c >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
-mono tldr-sharp.exe --clear-cache >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-# Test list
-mono tldr-sharp.exe --list >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-# Test list-all
-mono tldr-sharp.exe -a >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
-mono tldr-sharp.exe --list-all >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-mono tldr-sharp.exe tar >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-# Test help
-mono tldr-sharp.exe -h >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
-mono tldr-sharp.exe --help >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-# Test non-existing command
-mono tldr-sharp.exe -x >/dev/null
-if [ $? == 0 ]; then
-    exit 1
-fi
-mono tldr-sharp.exe --fake >/dev/null
-if [ $? == 0 ]; then
-    exit 1
-fi
- 
-# Test page
-mono tldr-sharp.exe tar >/dev/null
-if [ $? != 0 ]; then
-    exit 1
-fi
- 
-# Test non-existing page
-mono tldr-sharp.exe giberishdsfsd >/dev/null
-if [ $? == 0 ]; then
-    exit 1
-fi 
 
-# test os 
-mono tldr-sharp.exe  --platform=linux >/dev/null
+# Test clear cache
+$TLDR -c >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+$TLDR --clear-cache >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+# Test list
+$TLDR --list >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+# Test list-all
+$TLDR -a >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+$TLDR --list-all >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+$TLDR tar >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+# Test help
+$TLDR -h >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+$TLDR --help >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+# Test non-existing command
+$TLDR -x >/dev/null
+if [ $? == 0 ]; then
+    exit 1
+fi
+$TLDR --fake >/dev/null
+if [ $? == 0 ]; then
+    exit 1
+fi
+
+# Test page
+$TLDR tar >/dev/null
+if [ $? != 0 ]; then
+    exit 1
+fi
+
+# Test non-existing page
+$TLDR giberishdsfsd >/dev/null
+if [ $? == 0 ]; then
+    exit 1
+fi
+
+# test os
+$TLDR --platform=linux >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test os non-existing page
-mono tldr-sharp.exe giberishdsfsd --platform=linux >/dev/null
+$TLDR giberishdsfsd --platform=linux >/dev/null
 if [ $? == 0 ]; then
     exit 1
 fi
 
 # Test list-languages
-mono tldr-sharp.exe --list-languages >/dev/null
+$TLDR --list-languages >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
-# Test list-os
-mono tldr-sharp.exe --list-os >/dev/null
+# Test list-platforms
+$TLDR --list-platforms >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test version
-mono tldr-sharp.exe -v >/dev/null
+$TLDR -v >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
 # Test search
-mono tldr-sharp.exe -s tar >/dev/null
+$TLDR -s tar >/dev/null
 if [ $? != 0 ]; then
     exit 1
 fi
 
-mono tldr-sharp.exe -s giberishdsfsd >/dev/null
+$TLDR -s giberishdsfsd >/dev/null
 if [ $? == 0 ]; then
     exit 1
 fi

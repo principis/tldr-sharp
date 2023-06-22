@@ -5,81 +5,78 @@ name: Release CI
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - v*.*.*
 env:
-  RELEASE_VERSION: $(echo $GITHUB_REF | cut -d'-' -f1 | cut -c12-)
+  RELEASE_VERSION: $(echo $GITHUB_REF_NAME | cut -d'v' -f2)
+  DOTNET_VERSION: 6.0
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, win-x86, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install mono
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnupg ca-certificates
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-          echo "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
-          sudo apt-get update
-          sudo apt-get install -y mono-devel nuget
-
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}.x
       - name: Build tldr-sharp
         run: |
-          nuget restore tldr-sharp.sln
-          msbuild tldr-sharp.sln -t:Rebuild -p:TargetFrameworks=net461 -p:Configuration=Release -p:AllowedReferenceRelatedFileExtensions=none
+          dotnet publish -c Release --self-contained false -o 'publish/${{ matrix.runtime }}' -r '${{ matrix.runtime }}'
 
       - name: Cache Build
-        uses: actions/cache@v2
+        uses: actions/cache/save@v3
         with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
+          path: 'publish/${{ matrix.runtime }}'
+          key: ${{ runner.os }}-${{ github.sha }}-build-${{ matrix.runtime }}
           
   test:
     runs-on: ubuntu-latest
     needs: build
     
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache Build
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-dotnet@v3
         with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
+          dotnet-version: '${{ env.DOTNET_VERSION }}.x'
+      - name: Restore cached build
+        uses: actions/cache/restore@v3
+        with:
+          path: publish/linux-x64
+          key: ${{ runner.os }}-${{ github.sha }}-build-linux-x64
       - run: bash scripts/test.sh
           
 
   create_setup:
-    runs-on: ubuntu-20.04
-    needs: test
-
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    strategy:
+      matrix:
+        runtime: [win-x64, win-x86]
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache Build
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
+      - name: Restore cached build
+        uses: actions/cache/restore@v3
         with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
+          path: 'publish/${{ matrix.runtime }}'
+          key: ${{ runner.os }}-${{ github.sha }}-build-${{ matrix.runtime }}
 
       - name: Copy build output
         run: |
-          cp -r tldr-sharp/bin/Release/net461 scripts/windows/release
-          cp scripts/windows/sqlite3.dll scripts/windows/release/
-          mv scripts/windows/release/tldr-sharp.exe scripts/windows/release/tldr.exe
-          mv scripts/windows/release/tldr-sharp.exe.config scripts/windows/release/tldr.exe.config
+          cp -r 'publish/${{ matrix.runtime }}' scripts/windows/release
 
       - name: Download EnVar plugin for NSIS
-        uses: carlosperate/download-file-action@v1.0.3
+        uses: carlosperate/download-file-action@v2
         with:
           file-url: https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip
           file-name: envar_plugin.zip
           location: ${{ github.workspace }}
+          sha256: 39e94847ef0209c5cd93b735c3f560131c192a1136c96eddf643944e69c03b92
 
       - name: Extract EnVar plugin
-        run: 7z x -o"${{ github.workspace }}/NSIS_Plugins" "${{ github.workspace }}/envar_plugin.zip"
+        run: unzip '${{ github.workspace }}/envar_plugin.zip' -d '${{ github.workspace }}/NSIS_Plugins'
 
       - name: Install makensis
         run: |
@@ -90,86 +87,90 @@ jobs:
         run: sudo chown -R $(whoami) /usr/share/nsis/Plugins/
 
       - name: Set tldr-sharp version
-        run: sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}.0/g" "scripts/windows/install.nsi"
+        run: sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}.0/g" 'scripts/windows/install.nsi'
 
       - name: Create nsis installer
-        uses: joncloud/makensis-action@v3.3
+        uses: joncloud/makensis-action@v4
         with:
           script-file: scripts/windows/install.nsi
-          additional-plugin-paths: ${{ github.workspace }}/NSIS_Plugins/Plugins
+          additional-plugin-paths: '${{ github.workspace }}/NSIS_Plugins/Plugins'
+
+      - name: Rename installer
+        run: |
+          mv 'scripts/windows/tldr-sharp_setup.exe' 'scripts/windows/tldr-sharp_${{ matrix.runtime }}.exe'
 
       - name: Add to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: scripts/windows/tldr-sharp_setup.exe
+          files: 'scripts/windows/tldr-sharp_${{ matrix.runtime }}.exe'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   create_deb:
-    runs-on: ubuntu-20.04
-    needs: test
-
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    strategy:
+      matrix:
+        runtime: [linux-x64]
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache Build
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
+      - name: Restore cached build
+        uses: actions/cache/restore@v3
         with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
+          path: 'publish/${{ matrix.runtime }}'
+          key: ${{ runner.os }}-${{ github.sha }}-build-${{ matrix.runtime }}
 
       - name: Prepare directory
         run: |
-          HOME_PATH=$(pwd)
-          pushd tldr-sharp/bin/Release/net461
-          find . -not -name "*.exe" -type f -exec install -Dm 644 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
-          find . -name '*.exe' -type f -exec install -Dm 755 '{}' "${HOME_PATH}/.debpkg/usr/lib/tldr-sharp/{}" \;
+          pushd 'publish/${{ matrix.runtime }}'
+          find . -not -name '*.exe' -type f -exec install -Dm 644 '{}' '${{ github.workspace }}/.debpkg/usr/lib/tldr-sharp/{}' \;
+          find . -name '*.exe' -type f -exec install -Dm 755 '{}' '${{ github.workspace }}/.debpkg/usr/lib/tldr-sharp/{}' \;
           popd
-          install -Dm755 "scripts/debian/tldr-sharp" ".debpkg/usr/bin/tldr-sharp"
-          install -Dm644 "scripts/debian/control" ".debpkg/DEBIAN/control"
-          install -Dm755 "scripts/debian/postinst" ".debpkg/DEBIAN/postinst"
-          install -Dm755 "scripts/debian/prerm" ".debpkg/DEBIAN/prerm"
-          sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}/g" ".debpkg/DEBIAN/control"
+          install -dm755 .debpkg/usr/bin
+          ln -s /usr/lib/tldr-sharp/tldr-sharp .debpkg/usr/bin/tldr-sharp
+          install -Dm644 scripts/debian/control .debpkg/DEBIAN/control
+          install -Dm755 scripts/debian/postinst .debpkg/DEBIAN/postinst
+          install -Dm755 scripts/debian/prerm .debpkg/DEBIAN/prerm
+          sed -i "s/VERSION_PLACEHOLDER/${{ env.RELEASE_VERSION }}/g" .debpkg/DEBIAN/control
 
       - name: Build Debian package
-        run: fakeroot dpkg-deb --build ".debpkg" "tldr-sharp.deb"
+        run: fakeroot dpkg-deb --build .debpkg 'tldr-sharp_${{ matrix.runtime }}.deb'
 
       - name: Add to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: tldr-sharp.deb
+          files: tldr-sharp_${{ matrix.runtime }}.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   create_archives:
     runs-on: ubuntu-latest
-    needs: test
-
+    needs: [build, test]
+    strategy:
+      matrix:
+        runtime: [win-x64, win-x86, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache Build
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
+      - name: Restore cached build
+        uses: actions/cache/restore@v3
         with:
-          path: tldr-sharp/bin/
-          key: ${{ runner.os }}-build-${{ github.sha }}
+          path: 'publish/${{ matrix.runtime }}'
+          key: ${{ runner.os }}-${{ github.sha }}-build-${{ matrix.runtime }}
 
-      - name: Create Linux archive
-        run: |
-          tar czf tldr-sharp_linux.tar.gz -C tldr-sharp/bin/Release/net461/ .
+      - name: Create tar archive
+        if: ${{ startsWith( matrix.runtime, 'linux') }}
+        run: tar czf tldr-sharp_linux.tar.gz -C 'publish/${{ matrix.runtime }}' .
 
-      - name: Create Windows archive
+      - name: Create zip archive
+        if: ${{ !startsWith( matrix.runtime, 'linux') }}
         run: |
-          cp scripts/windows/sqlite3.dll tldr-sharp/bin/Release/net461/
-          pushd tldr-sharp/bin/Release/net461/
-          zip -r ../../../tldr-sharp_windows.zip .
-          popd
+          pushd publish/${{ matrix.runtime }}
+          zip -r '${{ github.workspace }}/tldr-sharp_${{ matrix.runtime }}.zip' .
 
       - name: Add to Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            tldr-sharp_linux.tar.gz
-            tldr-sharp_windows.zip
+            'tldr-sharp_${{ matrix.runtime }}.${{ startsWith( matrix.runtime, 'linux') && 'tar.gz' || 'zip' }}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

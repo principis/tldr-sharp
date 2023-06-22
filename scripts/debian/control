@@ -4,6 +4,6 @@ Section: universe/utils
 Priority: optional
 Maintainer: Arthur Bols <arthur.bols.dev>
 Architecture: all
-Depends: mono-runtime (>= 4.8), libmono-corlib4.5-cil (>= 4.8), libmono-system4.0-cil (>= 4.8), libmono-system-data4.0-cil (>= 4.8), libmono-system-core4.0-cil (>= 4.8), libmono-sqlite4.0-cil (>= 4.8), libsqlite3-0
+Depends: dotnet-runtime-6.0
 Homepage: https://github.com/principis/tldr-sharp
 Description: A C# based, feature-rich command-line client for tldr-pages.
