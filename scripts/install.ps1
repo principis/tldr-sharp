@@ -7,7 +7,7 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
     throw "Powershell v5 or newer is required."
 }
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::TLS12
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::TLS13
 
 $apiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest"
 
@@ -20,7 +20,7 @@ $json = $webClient.DownloadString($apiUrl) | ConvertFrom-Json
 $downloadUrl = ""
 
 Foreach ($item in $json.assets) {
-    if ($item.browser_download_url.IndexOf("windows") -gt 0) {
+    if ($item.browser_download_url.IndexOf("win") -gt 0) {
         
         if ([Environment]::Is64BitProcess) {
             if ($item.browser_download_url.IndexOf("x64") -gt 0) {

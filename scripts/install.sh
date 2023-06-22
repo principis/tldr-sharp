@@ -21,7 +21,7 @@ fi
 # Download release
 
 mkdir tldr
-wget -q "https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_linux.tar.gz" -O tldr-sharp.tar.gz
+wget -q "https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_linux-x64.tar.gz" -O tldr-sharp.tar.gz
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -39,8 +39,19 @@ fi
 
 # Move release
 
-find tldr -not -name "*.exe" -type f -exec install -Dm 644 '{}' "${tldrLib}/{}" \;
-find tldr -name '*.exe' -type f -exec install -Dm 755 '{}' "${tldrLib}/{}" \;
+install -Dm 755 tldr/tldr-sharp "${tldrLib}/tldr"
+find tldr -type f -name "*.dll" -o -name "*.so" -exec install -Dm 755 '{}' "${tldrLib}/{}" \;
+find tldr -type f -name "*.json" -exec install -Dm 644 '{}' "${tldrLib}/{}" \;
+retval=$?
+
+if [ $retval != 0 ]; then
+    echo '[ERROR] Failed to move to install location!'
+    exit 1
+fi
+
+# Symlink executable
+
+ln -s "${tldrLib}/tldr-sharp" "${tldrBin}/tldr-sharp"
 retval=$?
 
 if [ $retval != 0 ]; then
@@ -49,28 +60,5 @@ if [ $retval != 0 ]; then
 fi
 
 rm -rf "/tmp/tldr"
-
-# Download executable
-
-wget -q https://raw.githubusercontent.com/principis/tldr-sharp/main/tldr
-retval=$?
-
-if [ $retval != 0 ]; then
-    echo '[ERROR] Failed to download tldr executable!'
-    exit 1
-fi
-
-# Install executable
-
-install -m755 tldr "$tldrBin"
-retval=$?
-
-if [ $retval != 0 ]; then
-    echo '[ERROR] Failed to move to install location!'
-    exit 1
-fi
-
-# Delete tmp
-rm tldr
 
 echo 'Finished'
