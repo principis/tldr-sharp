@@ -145,7 +145,7 @@ jobs:
 
   create_archives:
     runs-on: ubuntu-latest
-    needs: [build, test]
+    needs: [build,test]
     strategy:
       matrix:
         runtime: [win-x64, win-x86, linux-x64, linux-musl-x64, linux-arm, linux-arm64, osx-x64]
@@ -159,18 +159,19 @@ jobs:
 
       - name: Create tar archive
         if: ${{ startsWith( matrix.runtime, 'linux') }}
-        run: tar czf tldr-sharp_linux.tar.gz -C 'publish/${{ matrix.runtime }}' .
+        run: tar czf tldr-sharp_${{ matrix.runtime }}.tar.gz -C 'publish/${{ matrix.runtime }}' .
 
       - name: Create zip archive
         if: ${{ !startsWith( matrix.runtime, 'linux') }}
         run: |
           pushd publish/${{ matrix.runtime }}
           zip -r '${{ github.workspace }}/tldr-sharp_${{ matrix.runtime }}.zip' .
+          popd
 
       - name: Add to Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            'tldr-sharp_${{ matrix.runtime }}.${{ startsWith( matrix.runtime, 'linux') && 'tar.gz' || 'zip' }}'
+            tldr-sharp_${{ matrix.runtime }}.${{ startsWith( matrix.runtime, 'linux') && 'tar.gz' || 'zip' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
