@@ -30,7 +30,7 @@ namespace tldr_sharp
         internal const string RemoteUrl = "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages";
 
         internal const string ArchiveRemote = "https://tldr.sh/assets/tldr.zip";
-        internal const string ArchiveAlternativeRemote = "https://github.com/tldr-pages/tldr-pages.github.io/raw/main/assets/tldr.zip";
+        internal const string ArchiveAlternativeRemote = "https://raw.githubusercontent.com/tldr-pages/tldr-pages.github.io/main/assets/tldr.zip";
 
         internal const string NewPageUrl = "https://github.com/tldr-pages/tldr/issues/new?title=page%20request:%20";
         internal const string NewTranslationUrl = "https://github.com/tldr-pages/tldr/blob/main/CONTRIBUTING.md#translations";
