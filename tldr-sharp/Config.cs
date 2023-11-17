@@ -25,11 +25,8 @@ namespace tldr_sharp
                                                     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)";
 
         internal static readonly bool AnsiSupport;
-        internal static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
 
         internal const string ApiUrl = "https://api.github.com/repos/principis/tldr-sharp/releases/latest";
-        internal const string UpdateUrl = "https://github.com/principis/tldr-sharp/releases/download/";
-        internal const string ScriptUrl = "https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/linux_install.sh";
         internal const string RemoteUrl = "https://raw.githubusercontent.com/tldr-pages/tldr/main/pages";
 
         internal const string ArchiveRemote = "https://tldr.sh/assets/tldr.zip";

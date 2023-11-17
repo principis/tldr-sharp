@@ -64,7 +64,6 @@ namespace tldr_sharp
             // All following functions rely on the cache, so check it.
             Cache.Check();
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (settings.ListLanguages) {
                 Cli.WriteLine(string.Join(Environment.NewLine,
                     ListLanguages().Select(lang =>
