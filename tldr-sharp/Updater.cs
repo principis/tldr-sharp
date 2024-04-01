@@ -35,25 +35,10 @@ namespace tldr_sharp
             try {
                 await DownloadPages(Config.ArchiveRemote, tmpPath);
             }
-            catch (WebException eRemote) {
-                try {
-                    await DownloadPages(Config.ArchiveAlternativeRemote, tmpPath);
-                }
-                catch (WebException eAlternative) {
-                    Cli.WriteErrorMessage($"Downloading pages failed: {eAlternative.GetBaseException().Message}");
-
-                    if (eRemote.Response is HttpWebResponse response &&
-                        response.StatusCode == HttpStatusCode.Forbidden) {
-                        Cli.WriteLine("Please try to set the Cloudflare cookie and user-agent. " +
-                                      "See https://github.com/principis/tldr-sharp/wiki/403-when-updating-cache.");
-                    }
-                    else {
-                        Cli.WriteLine("Please make sure you have a functioning internet connection.");
-                    }
-
-                    Environment.Exit(1);
-                    return;
-                }
+            catch (WebException e) {
+                Cli.WriteErrorMessage($"Downloading pages failed: {e.GetBaseException().Message}");
+                Environment.Exit(1);
+                return;
             }
 
             try {
