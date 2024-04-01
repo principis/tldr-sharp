@@ -24,28 +24,16 @@ sudo dnf copr enable principis/tldr-sharp
 sudo dnf --refresh install tldr-sharp
 ```
 
-#### Script
-
-Run the install script.
-
-```sh
-wget https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/install.sh
-chmod +x install.sh
-sudo ./install.sh
-```
-
 #### Manual
 
 Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
 
 ```sh
-mkdir tldr
-tar xzf <version>.tar.gz -C tldr
-sudo chown -R root:root tldr
-sudo mv tldr /usr/local/lib/
-cd /usr/local/bin
-sudo wget https://raw.githubusercontent.com/principis/tldr-sharp/main/tldr
-sudo chmod +x tldr
+mkdir tldr-sharp
+tar xzf <version>.tar.gz -C tldr-sharp
+sudo chown -R root:root tldr-sharp
+sudo cp -pr tldr-sharp /usr/local/lib/
+sudo ln -s /usr/local/lib/tldr-sharp/tldr-sharp /usr/local/bin/tldr-sharp
 ```
 
 ### Windows
@@ -58,23 +46,11 @@ It is recommended to use the new [Windows Terminal](https://aka.ms/terminal), so
 
 Run the [setup](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_setup.exe).
 
-#### Installation via script
-
-* Open powershell as administrator
-* Run the following command:
-
-```ps
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/principis/tldr-sharp/main/scripts/install.ps1'))
-```
-
-Reopen powershell and run `tldr`.
-
 #### Manual installation
 
 * Download the latest [release](https://github.com/principis/tldr-sharp/releases)
 * Extract to a folder of choice, for example `C:\ProgramData\tldr-sharp`
 * Copy `tldr-sharp.exe` to `tldr.exe`
-* Copy `tldr-sharp.exe.config` to `tldr.exe.config`
 * Add it to the path
     * Open Control Panel (old style)
     * On the **System** page, click **Advanced system settings** on the left-hand side
@@ -97,7 +73,7 @@ Simplified and community-driven man pages
   -h, --help                 Display this help text
   -l, --list                 List all pages for the current platform and
                                language
-      --list-os              List all OS's
+      --list-platforms       List all platforms
       --list-languages       List all languages
   -L, --language, --lang=VALUE
                              Specifies the preferred language
