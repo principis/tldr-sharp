@@ -5,7 +5,9 @@
 */
 
 using System;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -13,6 +15,8 @@ namespace tldr_sharp
     public static class PageParser
     {
         private const string Spacing = "   ";
+
+        private static readonly Regex PlaceholderRegex = new Regex("({{)[^}}]*}?(}})");
 
         internal static string ParseLine(string line, bool formatted = false)
         {
@@ -48,7 +52,15 @@ namespace tldr_sharp
         {
             var builder = new StringBuilder(line.EscapeMarkup());
 
-            if (line.Contains("{{")) builder.Replace("{{", "[green]").Replace("}}", "[/]");
+            foreach (var match in PlaceholderRegex.Matches(line).Reverse()) {
+                if (match.Groups.Count != 3) continue;
+
+                builder.Remove(match.Groups[2].Index, 2);
+                builder.Insert(match.Groups[2].Index, "[/]");
+
+                builder.Remove(match.Groups[1].Index, 2);
+                builder.Insert(match.Groups[1].Index, "[green]");
+            }
 
             int urlStart = builder.IndexOf("<");
             if (urlStart != -1) {
