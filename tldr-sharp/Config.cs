@@ -16,7 +16,7 @@ namespace tldr_sharp
             AnsiSupport = Windows.CheckAnsiSupport();
         }
 
-        public const string ClientSpecification = "2.0";
+        public const string ClientSpecification = "2.2";
 
         internal static readonly string CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".tldr", "cache");
         internal static readonly string DbPath = Path.Combine(CachePath, "index.sqlite");
