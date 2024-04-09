@@ -44,7 +44,10 @@ namespace tldr_sharp
                 if (!extractPath.EndsWith(Path.DirectorySeparatorChar))
                     extractPath += Path.DirectorySeparatorChar.ToString();
 
-                foreach (var entry in reader.Entries) {
+                // Don't extract pages/ directory. Replaced by pages.en/
+                var entries = reader.Entries.SkipWhile(e => e.FullName.StartsWith("pages/"));
+
+                foreach (var entry in entries) {
                     var destinationPath = Path.GetFullPath(Path.Combine(extractPath, entry.FullName));
                     if (!destinationPath.StartsWith(extractPath, StringComparison.Ordinal)) {
                         throw new IOException("Malicious zip file entry tries to extract outside cache");
