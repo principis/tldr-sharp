@@ -82,10 +82,14 @@ namespace tldr_sharp
             var localParam = pageCommand.Parameters.AddWithValue("@local", null);
 
 
-            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
+            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("pages*")) {
                 string lang = Locale.DefaultLanguage;
                 bool isLocal = true;
-                if (dir.Name.Contains(".")) lang = dir.Name.Split('.')[1];
+                if (!dir.Name.Contains('.')) {
+                    continue;
+                }
+
+                lang = dir.Name.Split('.')[1];
 
                 if (lang != Locale.DefaultLanguage &&
                     preferredLanguages.All(x => lang[..2] != x[..2]))
