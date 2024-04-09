@@ -20,6 +20,7 @@ namespace tldr_sharp
 
         internal static string ParseLine(string line, bool formatted = false)
         {
+            line = line.EscapeMarkup();
             return Config.AnsiSupport ? ParseAnsiLine(line, formatted) : ParsePlainLine(line, formatted);
         }
 
@@ -50,7 +51,7 @@ namespace tldr_sharp
 
         private static string ParseAnsiLine(string line, bool formatted = false)
         {
-            var builder = new StringBuilder(line.EscapeMarkup());
+            var builder = new StringBuilder(line);
 
             foreach (var match in PlaceholderRegex.Matches(line).Reverse()) {
                 if (match.Groups.Count != 3) continue;
