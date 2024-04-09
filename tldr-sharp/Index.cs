@@ -39,6 +39,9 @@ namespace tldr_sharp
         {
             var cacheDir = new DirectoryInfo(Config.CachePath);
 
+            // Reset connection pool
+            SqliteConnection.ClearAllPools();
+
             using var conn = new SqliteConnection("Data Source=" + Config.DbPath + ";");
             conn.Open();
 
