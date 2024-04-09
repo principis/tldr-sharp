@@ -49,11 +49,13 @@ namespace tldr_sharp
 
         internal static void ListAll(bool ignorePlatform, string language = null, string platform = null)
         {
-            List<Page> pages =
-                ignorePlatform ? QueryByLanguage(language) : QueryByLanguageAndPlatform(language, platform);
+            var pages = ignorePlatform ? QueryByLanguage(language) : QueryByLanguageAndPlatform(language, platform);
+            var query = pages.Select(x => x.ToString())
+                .Distinct()
+                .OrderBy(s => s, StringComparer.Ordinal.WithNaturalSort());
 
-            foreach (Page page in pages.OrderBy(x => x.Name, StringComparer.Ordinal.WithNaturalSort())) {
-                Cli.WriteLine(page.ToString());
+            foreach (var page in query) {
+                Cli.WriteLine(page);
             }
         }
 
