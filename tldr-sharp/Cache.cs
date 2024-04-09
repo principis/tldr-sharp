@@ -48,8 +48,7 @@ namespace tldr_sharp
             var pageFile = new FileInfo(page.GetPath());
             Directory.CreateDirectory(pageFile.DirectoryName ?? throw new ArgumentException());
 
-            string language = page.DirLanguage;
-            await HttpUtils.DownloadFile($"{Config.RemoteUrl}{language}/{page.Platform}/{page.Name}.md", page.GetPath());
+            await HttpUtils.DownloadFile($"{Config.RemoteUrl}.{page.Language}/{page.Platform}/{page.Name}.md", page.GetPath());
 
             Index.SetPageAsDownloaded(page);
         }

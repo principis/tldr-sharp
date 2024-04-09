@@ -14,10 +14,7 @@ namespace tldr_sharp
     {
         public readonly string Name;
         public readonly string Platform;
-
         public readonly string Language;
-        public string DirLanguage => Language == Locale.DefaultLanguage ? string.Empty : $".{Language}";
-
         public readonly bool Local;
 
         public Page(string name, string platform, string language, bool local)
@@ -41,7 +38,7 @@ namespace tldr_sharp
         internal string GetPath()
         {
             return Path.Combine(Config.CachePath,
-                "pages" + DirLanguage, Platform, $"{Name}.md");
+                $"pages.{Language}", Platform, $"{Name}.md");
         }
 
         internal void Download()
