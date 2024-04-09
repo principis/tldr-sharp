@@ -15,7 +15,7 @@
         <Product>tldr-sharp</Product>
         <NeutralLanguage>en</NeutralLanguage>
         <Description>C# tldr-pages client</Description>
-        <Copyright>Copyright (C) 2023 The tldr-sharp contributors.</Copyright>
+        <Copyright>Copyright (C) 2024 The tldr-sharp contributors.</Copyright>
         <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
         <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
         <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
