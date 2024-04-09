@@ -7,12 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using SharpCompress.Archives;
-using SharpCompress.Archives.Zip;
-using SharpCompress.Common;
 using Spectre.Console;
 
 namespace tldr_sharp
@@ -27,20 +24,6 @@ namespace tldr_sharp
 
         internal static async Task Update(StatusContext ctx)
         {
-            string tmpPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            if (File.Exists(tmpPath)) File.Delete(tmpPath);
-            if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true);
-
-            ctx.Status("Updating page cache: [grey]Downloading pages[/]");
-            try {
-                await DownloadPages(Config.ArchiveRemote, tmpPath);
-            }
-            catch (WebException e) {
-                Cli.WriteErrorMessage($"Downloading pages failed: {e.GetBaseException().Message}");
-                Environment.Exit(1);
-                return;
-            }
-
             try {
                 ctx.Status("Updating page cache: [grey]Clearing cache[/]");
                 Cache.Clear(ctx);
@@ -51,23 +34,41 @@ namespace tldr_sharp
                 return;
             }
 
-            ctx.Status("Updating page cache: [grey]Extracting pages[/]");
+            ctx.Status("Updating page cache: [grey]Downloading pages[/]");
 
-            using (var archive = ZipArchive.Open(tmpPath)) {
-                foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory)) {
-                    entry.WriteToDirectory(Config.CachePath, new ExtractionOptions()
-                    {
-                        ExtractFullPath = true,
-                        Overwrite = true
-                    });
+            try {
+                await using var response = await HttpUtils.GetStreamAsync(Config.ArchiveRemote);
+                using var reader = new ZipArchive(response);
+
+                var extractPath = Path.GetFullPath(Config.CachePath);
+                if (!extractPath.EndsWith(Path.DirectorySeparatorChar))
+                    extractPath += Path.DirectorySeparatorChar.ToString();
+
+                foreach (var entry in reader.Entries) {
+                    var destinationPath = Path.GetFullPath(Path.Combine(extractPath, entry.FullName));
+                    if (!destinationPath.StartsWith(extractPath, StringComparison.Ordinal)) {
+                        throw new IOException("Malicious zip file entry tries to extract outside cache");
+                    }
+
+                    if (Path.GetFileName(destinationPath).Length == 0) {
+                        Directory.CreateDirectory(destinationPath);
+                    }
+                    else {
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath);
+                    }
                 }
+            }
+            catch (Exception e) {
+                Cli.WriteErrorMessage($"Downloading pages failed: {e.Message}");
+                Environment.Exit(1);
+                return;
             }
 
             ctx.Status("Updating page cache: [grey]Creating index[/]");
             Index.Create(ctx);
 
             ctx.Status("Updating page cache: [grey]Optimizing cache[/]");
-            File.Delete(tmpPath);
             CleanupCache();
         }
 
@@ -75,7 +76,7 @@ namespace tldr_sharp
         {
             var cacheDir = new DirectoryInfo(Config.CachePath);
 
-            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("*pages*")) {
+            foreach (DirectoryInfo dir in cacheDir.EnumerateDirectories("pages*")) {
                 string lang = Locale.DefaultLanguage;
                 if (dir.Name.Contains(".")) {
                     lang = dir.Name.Split('.')[1];

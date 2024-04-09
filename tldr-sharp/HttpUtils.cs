@@ -20,6 +20,11 @@ namespace tldr_sharp
             }
         }
 
+        public static Task<Stream> GetStreamAsync(string uri)
+        {
+            return HttpClient.GetStreamAsync(uri);
+        }
+
         public static async Task DownloadFile(string uri, string fileName)
         {
             await using Stream s = await HttpClient.GetStreamAsync(uri);
