@@ -14,7 +14,7 @@ A C# based, feature-rich command-line client for [tldr-pages](https://github.com
 
 #### Ubuntu/Debian
 
-Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp.deb) Debian package.
+Install the [latest](https://github.com/principis/tldr-sharp/releases/latest/) Debian package.
 
 #### Fedora
 tldr-sharp is available in [COPR](https://copr.fedorainfracloud.org/coprs/principis/tldr-sharp/)
@@ -26,7 +26,7 @@ sudo dnf --refresh install tldr-sharp
 
 #### Manual
 
-Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases).
+Download and extract the latest [release](https://github.com/principis/tldr-sharp/releases/latest/).
 
 ```sh
 mkdir tldr-sharp
@@ -44,7 +44,7 @@ It is recommended to use the new [Windows Terminal](https://aka.ms/terminal), so
 
 #### Installer
 
-Run the [setup](https://github.com/principis/tldr-sharp/releases/latest/download/tldr-sharp_setup.exe).
+Download and run the [installer](https://github.com/principis/tldr-sharp/releases/latest/).
 
 #### Manual installation
 
