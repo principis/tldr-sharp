@@ -28,10 +28,10 @@
 
     <ItemGroup>
         <PackageReference Include="Iso639" Version="1.0.0" />
-        <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.17" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
         <PackageReference Include="Mono.Options" Version="6.12.0.148" />
-        <PackageReference Include="NaturalSort.Extension" Version="4.2.0" />
-        <PackageReference Include="Spectre.Console" Version="0.48.0" />
+        <PackageReference Include="NaturalSort.Extension" Version="4.3.0" />
+        <PackageReference Include="Spectre.Console" Version="0.49.1" />
     </ItemGroup>
 
 </Project>
