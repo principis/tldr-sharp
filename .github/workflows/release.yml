@@ -25,7 +25,13 @@ jobs:
       - name: Build tldr-sharp
         run: |
           dotnet publish -c Release --self-contained false -o 'publish/${{ matrix.runtime }}' -r '${{ matrix.runtime }}'
-
+      - name: Sign macOS build
+        if: ${{ startsWith(matrix.runtime, 'osx') }}
+        uses: indygreg/apple-code-sign-action@v1
+        with:
+          input_path: publish/${{ matrix.runtime }}/tldr-sharp
+          p12_file: .github/assets/codesign.p12
+          p12_password: ${{ secrets.codesign_password }}
       - name: Cache Build
         uses: actions/cache/save@v3
         with:
