@@ -9,7 +9,7 @@
 
     <!-- Set the Product and Version info -->
     <PropertyGroup>
-        <AssemblyVersion>3.3.0</AssemblyVersion>
+        <AssemblyVersion>3.3.1</AssemblyVersion>
         <Authors>The tldr-sharp contributors</Authors>
         <Company>tldr-sharp</Company>
         <Product>tldr-sharp</Product>
